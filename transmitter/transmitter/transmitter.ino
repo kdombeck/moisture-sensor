@@ -1,6 +1,6 @@
 #include <Adafruit_FeatherOLED_WiFi.h>
 
-const int aButtonPin = a; // a = 9, b = 6, c = 5
+const int aButtonPin = 9; // a = 9, b = 6, c = 5
 int aButtonPushCounter = 0;
 int aButtonState = 0;
 int aLastButtonState = 0;
