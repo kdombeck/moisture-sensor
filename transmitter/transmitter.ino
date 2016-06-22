@@ -16,6 +16,9 @@
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+// Blinky on receipt
+#define LED 13
+
 // Oled Config
 const int aButtonPin = 9; // a = 9, b = 6, c = 5
 int aButtonPushCounter = 0;
@@ -26,6 +29,7 @@ Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
 
 void setup() {
   // radio setup
+  pinMode(LED, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
@@ -100,10 +104,13 @@ void loop() {
       if (rf95.waitAvailableTimeout(1000)) {
         // Should be a reply message for us now
         if (rf95.recv(buf, &len)) {
+          digitalWrite(LED, HIGH);
           Serial.print("Got reply: ");
+          Serial.println((char*)buf);
           Serial.print("RSSI: ");
           Serial.println(rf95.lastRssi(), DEC);
-          oled.println("Reply: "); oled.println((char*)buf);
+          oled.print("Reply: "); oled.println((char*)buf);
+          oled.display();
         } else {
           Serial.println("Receive failed");
           oled.println("Receive failed");
@@ -116,13 +123,14 @@ void loop() {
       }
 
       delay(1000);
+      digitalWrite(LED, LOW);
     }
   }
 
-    oled.clearDisplay();
-    oled.setCursor(0,0);
-    oled.print("A pressed: "); oled.println(aButtonPushCounter);
-    oled.display();
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.print("A pressed: "); oled.println(aButtonPushCounter);
+  oled.display();
 
   aLastButtonState = aButtonState;
 }
