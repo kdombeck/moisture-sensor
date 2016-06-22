@@ -65,6 +65,15 @@ void setup() {
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   oled.init();
 
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.println("A - send sensor data");
+  oled.println("B - send GPS data (not implemented)");
+  oled.println("C - go to sleep (not implemented)");
+  oled.display();
+
+  delay(1000);
+
   pinMode(aButtonPin, INPUT_PULLUP);
 }
 
