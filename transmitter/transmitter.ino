@@ -27,6 +27,9 @@ int aLastButtonState = 0;
 
 Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
 
+// Sensor config
+int sensorPin = A0;
+
 void setup() {
   // radio setup
   pinMode(LED, OUTPUT);
@@ -68,13 +71,16 @@ void setup() {
   oled.clearDisplay();
   oled.setCursor(0,0);
   oled.println("A - send sensor data");
-  oled.println("B - send GPS data (not implemented)");
-  oled.println("C - go to sleep (not implemented)");
+  oled.println("B - send GPS (TODO)");
+  oled.println("C - sleep (TODO)");
   oled.display();
 
-  delay(1000);
+  delay(2000);
 
   pinMode(aButtonPin, INPUT_PULLUP);
+
+  // prime the pump for the sensor so subsequent readings are more accurate
+  analogRead(sensorPin);
 }
 
 void loop() {
@@ -86,10 +92,11 @@ void loop() {
     if (aButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       aButtonPushCounter++;
-      char radiopacket[24] = "A button pushed #      ";
-      itoa(aButtonPushCounter, radiopacket+17, 10);
+      int reading = analogRead(sensorPin);
+      char radiopacket[14] = "sensor:      ";
+      itoa(reading, radiopacket+7, 10);
       Serial.print("Sending "); Serial.println(radiopacket);
-      radiopacket[23] = 0;
+      radiopacket[13] = 0;
 
       oled.clearDisplay();
       oled.setCursor(0,0);
