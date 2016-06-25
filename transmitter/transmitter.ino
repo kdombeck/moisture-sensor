@@ -78,9 +78,6 @@ void setup() {
   delay(2000);
 
   pinMode(aButtonPin, INPUT_PULLUP);
-
-  // prime the pump for the sensor so subsequent readings are more accurate
-  analogRead(sensorPin);
 }
 
 void loop() {
@@ -105,6 +102,7 @@ void loop() {
 }
 
 void readAndSendSensorData() {
+  analogRead(sensorPin); // throw this one away so that we get a good reading on the next one
   int reading = analogRead(sensorPin);
   char radiopacket[14] = "sensor:      ";
   itoa(reading, radiopacket+7, 10);
