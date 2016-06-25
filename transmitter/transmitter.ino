@@ -149,6 +149,7 @@ void readAndSendSensorData() {
     oled.display();
   }
 
+  rf95.sleep();
   delay(1000);
   digitalWrite(LED, LOW);
 }
