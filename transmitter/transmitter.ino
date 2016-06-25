@@ -92,54 +92,7 @@ void loop() {
     if (aButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       aButtonPushCounter++;
-      int reading = analogRead(sensorPin);
-      char radiopacket[14] = "sensor:      ";
-      itoa(reading, radiopacket+7, 10);
-      Serial.print("Sending "); Serial.println(radiopacket);
-      radiopacket[13] = 0;
-
-      oled.clearDisplay();
-      oled.setCursor(0,0);
-      oled.print("Sending "); oled.println(radiopacket);
-      oled.display();
-
-      Serial.println("Sending..."); delay(10);
-      rf95.send((uint8_t *)radiopacket, 20);
-
-      oled.println("Waiting for response");
-      oled.display();
-
-      Serial.println("Waiting for packet to complete..."); delay(10);
-      rf95.waitPacketSent();
-
-      // Now wait for a reply
-      uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-      uint8_t len = sizeof(buf);
-
-      Serial.println("Waiting for reply..."); delay(10);
-      if (rf95.waitAvailableTimeout(1000)) {
-        // Should be a reply message for us now
-        if (rf95.recv(buf, &len)) {
-          digitalWrite(LED, HIGH);
-          Serial.print("Got reply: ");
-          Serial.println((char*)buf);
-          Serial.print("RSSI: ");
-          Serial.println(rf95.lastRssi(), DEC);
-          oled.print("Reply: "); oled.println((char*)buf);
-          oled.display();
-        } else {
-          Serial.println("Receive failed");
-          oled.println("Receive failed");
-          oled.display();
-        }
-      } else {
-        Serial.println("No reply, is there a listener around?");
-        oled.println("No reply");
-        oled.display();
-      }
-
-      delay(1000);
-      digitalWrite(LED, LOW);
+      readAndSendSensorData();
     }
   }
 
@@ -150,3 +103,55 @@ void loop() {
 
   aLastButtonState = aButtonState;
 }
+
+void readAndSendSensorData() {
+  int reading = analogRead(sensorPin);
+  char radiopacket[14] = "sensor:      ";
+  itoa(reading, radiopacket+7, 10);
+  Serial.print("Sending "); Serial.println(radiopacket);
+  radiopacket[13] = 0;
+
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.print("Sending "); oled.println(radiopacket);
+  oled.display();
+
+  Serial.println("Sending..."); delay(10);
+  rf95.send((uint8_t *)radiopacket, 20);
+
+  oled.println("Waiting for response");
+  oled.display();
+
+  Serial.println("Waiting for packet to complete..."); delay(10);
+  rf95.waitPacketSent();
+
+  // Now wait for a reply
+  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+  uint8_t len = sizeof(buf);
+
+  Serial.println("Waiting for reply..."); delay(10);
+  if (rf95.waitAvailableTimeout(1000)) {
+    // Should be a reply message for us now
+    if (rf95.recv(buf, &len)) {
+      digitalWrite(LED, HIGH);
+      Serial.print("Got reply: ");
+      Serial.println((char*)buf);
+      Serial.print("RSSI: ");
+      Serial.println(rf95.lastRssi(), DEC);
+      oled.print("Reply: "); oled.println((char*)buf);
+      oled.display();
+    } else {
+      Serial.println("Receive failed");
+      oled.println("Receive failed");
+      oled.display();
+    }
+  } else {
+    Serial.println("No reply, is there a listener around?");
+    oled.println("No reply");
+    oled.display();
+  }
+
+  delay(1000);
+  digitalWrite(LED, LOW);
+}
+
