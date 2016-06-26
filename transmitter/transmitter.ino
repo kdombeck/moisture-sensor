@@ -20,10 +20,11 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define LED 13
 
 // Oled Config
-const int aButtonPin = 9; // a = 9, b = 6, c = 5
-int aButtonPushCounter = 0;
-int aButtonState = 0;
-int aLastButtonState = 0;
+// buttons a = 9, b = 6, c = 5
+const int sendDataButtonPin = 9;
+int sendDataLastButtonState = 0;
+
+int nbrOfSentData = 0;
 
 Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
 
@@ -77,31 +78,32 @@ void setup() {
 
   delay(2000);
 
-  pinMode(aButtonPin, INPUT_PULLUP);
+  pinMode(sendDataButtonPin, INPUT_PULLUP);
 }
 
 void loop() {
-  aButtonState = digitalRead(aButtonPin);
+  int sendDataButtonState = digitalRead(sendDataButtonPin);
 
   // compare the buttonState to its previous state
-  if (aButtonState != aLastButtonState) {
+  if (sendDataButtonState != sendDataLastButtonState) {
     // if the state has changed, increment the counter
-    if (aButtonState == LOW) {
+    if (sendDataButtonState == LOW) {
       // if the current state is LOW then the button was pressed
-      aButtonPushCounter++;
       readAndSendSensorData();
     }
   }
 
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print("A pressed: "); oled.println(aButtonPushCounter);
+  oled.print("sent: "); oled.println(nbrOfSentData);
   oled.display();
 
-  aLastButtonState = aButtonState;
+  sendDataLastButtonState = sendDataButtonState;
 }
 
 void readAndSendSensorData() {
+  nbrOfSentData++;
+
   analogRead(sensorPin); // throw this one away so that we get a good reading on the next one
   int reading = analogRead(sensorPin);
   char radiopacket[14] = "sensor:      ";
@@ -150,7 +152,7 @@ void readAndSendSensorData() {
   }
 
   rf95.sleep();
-  delay(1000);
   digitalWrite(LED, LOW);
+  delay(1000);
 }
 
