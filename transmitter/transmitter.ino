@@ -153,11 +153,10 @@ void readAndSendSensorData() {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
       digitalWrite(LED, HIGH);
-      Serial.print("Got reply: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
+      Serial.print("Got reply: "); Serial.println((char*)buf);
+      Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
       oled.print("Reply: "); oled.println((char*)buf);
+      oled.print("RSSI: "); oled.println(rf95.lastRssi(), DEC);
       oled.display();
     } else {
       Serial.println("Receive failed");
