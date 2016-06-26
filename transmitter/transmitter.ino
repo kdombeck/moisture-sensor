@@ -1,5 +1,6 @@
 #include <RH_RF95.h>
 #include <Adafruit_FeatherOLED_WiFi.h>
+#include <Adafruit_SleepyDog.h>
 
 // Radio Config
 // for feather32u4
@@ -23,8 +24,11 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // buttons a = 9, b = 6, c = 5
 const int sendDataButtonPin = 9;
 int sendDataLastButtonState = 0;
+const int sleepButtonPin = 5;
+int sleepLastButtonState = 0;
 
 int nbrOfSentData = 0;
+bool deepSleep = false;
 
 Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
 
@@ -73,32 +77,47 @@ void setup() {
   oled.setCursor(0,0);
   oled.println("A - send sensor data");
   oled.println("B - send GPS (TODO)");
-  oled.println("C - sleep (TODO)");
+  oled.println("C - deep sleep");
   oled.display();
 
   delay(2000);
 
   pinMode(sendDataButtonPin, INPUT_PULLUP);
+  pinMode(sleepButtonPin, INPUT_PULLUP);
 }
 
 void loop() {
+  // check to see if sensor data should be sent
   int sendDataButtonState = digitalRead(sendDataButtonPin);
-
-  // compare the buttonState to its previous state
   if (sendDataButtonState != sendDataLastButtonState) {
-    // if the state has changed, increment the counter
     if (sendDataButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       readAndSendSensorData();
     }
   }
 
+  // check to see if the device should be put into deep sleep
+  int sleepButtonState = digitalRead(sleepButtonPin);
+  if (sleepButtonState != sleepLastButtonState) {
+    if (sleepButtonState == LOW) {
+      // if the current state is LOW then the button was pressed
+      deepSleep = !deepSleep;
+      Serial.print("sleep "); Serial.println(deepSleep);
+    }
+  }
+
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print("sent: "); oled.println(nbrOfSentData);
+  oled.print("nbr sent: "); oled.println(nbrOfSentData);
+  oled.print("deep sleep: "); oled.println(deepSleep);
   oled.display();
 
   sendDataLastButtonState = sendDataButtonState;
+  sleepLastButtonState = sleepButtonState;
+
+  if (deepSleep) {
+    Watchdog.sleep(1000);
+  }
 }
 
 void readAndSendSensorData() {
