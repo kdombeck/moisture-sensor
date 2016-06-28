@@ -1,6 +1,8 @@
 #include <RH_RF95.h>
-#include <Adafruit_FeatherOLED_WiFi.h>
 #include <Adafruit_SleepyDog.h>
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 // Radio Config
 // for feather32u4
@@ -30,7 +32,7 @@ int sleepLastButtonState = 0;
 int nbrOfSentData = 0;
 bool deepSleep = false;
 
-Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
+Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
 // Sensor config
 int sensorPin = A0;
@@ -71,8 +73,8 @@ void setup() {
 
   // oled setup
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  oled.init();
-
+  oled.setTextSize(1);
+  oled.setTextColor(WHITE);
   oled.clearDisplay();
   oled.setCursor(0,0);
   oled.println("A - send sensor data");
