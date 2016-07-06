@@ -1,5 +1,6 @@
 #include <RH_RF95.h>
 #include <Adafruit_SleepyDog.h>
+#include "Adafruit_GPS.h"
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -26,6 +27,10 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // buttons a = 9, b = 6, c = 5
 const int sendDataButtonPin = 9;
 int sendDataLastButtonState = 0;
+
+const int gpsButtonPin = 6;
+int gpsLastButtonState = 0;
+
 const int sleepButtonPin = 5;
 int sleepLastButtonState = 0;
 
@@ -37,13 +42,18 @@ Adafruit_SSD1306 oled = Adafruit_SSD1306();
 // Sensor config
 int sensorPin = A0;
 
+// GPS setup
+Adafruit_GPS GPS(&Serial1);
+float lastLatitudeDegrees, lastLongitudeDegrees;
+
 void setup() {
+//  while ( ! Serial ) { delay( 10 ); }
+  Serial.begin(115200);
+
   // radio setup
   pinMode(LED, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
-
-  Serial.println("Feather LoRa TX Test!");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -52,17 +62,17 @@ void setup() {
   delay(10);
 
   while (!rf95.init()) {
-    Serial.println("LoRa radio init failed");
+    Serial.println(F("LoRa radio init failed"));
     while (1);
   }
-  Serial.println("LoRa radio init OK!");
+  Serial.println(F("LoRa radio init OK!"));
 
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
+    Serial.println(F("setFrequency failed"));
     while (1);
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+  Serial.print(F("Set Freq to: ")); Serial.println(RF95_FREQ);
 
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
 
@@ -71,21 +81,42 @@ void setup() {
   // you can set transmitter powers from 5 to 23 dBm:
   rf95.setTxPower(23, false);
 
+  // GPS setup
+  // 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
+  GPS.begin(9600);
+  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  // uncomment this line to turn on only the "minimum recommended" data
+  //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  // For parsing data, we don't suggest using anything but either RMC only or RMC+GGA since
+  // the parser doesn't care about other sentences at this time
+  // Set the update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+  // For the parsing code to work nicely and have time to sort thru the data, and
+  // print it out we don't suggest using anything higher than 1 Hz
+
+  // Request updates on antenna status, comment out to keep quiet
+  GPS.sendCommand(PGCMD_ANTENNA);
+
   // oled setup
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   oled.setTextSize(1);
   oled.setTextColor(WHITE);
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.println("A - send sensor data");
-  oled.println("B - send GPS (TODO)");
-  oled.println("C - deep sleep");
+  oled.println(F("A - send sensor data"));
+  oled.println(F("B - send GPS (TODO)"));
+  oled.println(F("C - deep sleep"));
   oled.display();
 
   delay(2000);
 
   pinMode(sendDataButtonPin, INPUT_PULLUP);
+  pinMode(gpsButtonPin, INPUT_PULLUP);
   pinMode(sleepButtonPin, INPUT_PULLUP);
+
+  // Ask for firmware version
+  Serial1.println(PMTK_Q_RELEASE);
 }
 
 void loop() {
@@ -98,23 +129,48 @@ void loop() {
     }
   }
 
+  // read gps and check to see if the gps should be sent
+  if (!deepSleep) {
+    char c = GPS.read();
+    if (GPS.newNMEAreceived()) {
+      Serial.println(GPS.lastNMEA());
+      if (GPS.parse(GPS.lastNMEA())) {
+        Serial.println(GPS.milliseconds);
+        if (GPS.fix) {
+          lastLatitudeDegrees = GPS.latitudeDegrees;
+          lastLongitudeDegrees = GPS.longitudeDegrees;
+          Serial.print(F("last lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+        }
+      }
+    }
+  }
+  int gpsButtonState = digitalRead(gpsButtonPin);
+  if (gpsButtonState != gpsLastButtonState) {
+    if (gpsButtonState == LOW) {
+      // if the current state is LOW then the button was pressed
+      Serial.print(F("send gps lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+    }
+  }
+
   // check to see if the device should be put into deep sleep
   int sleepButtonState = digitalRead(sleepButtonPin);
   if (sleepButtonState != sleepLastButtonState) {
     if (sleepButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       deepSleep = !deepSleep;
-      Serial.print("sleep "); Serial.println(deepSleep);
+      Serial.print(F("sleep ")); Serial.println(deepSleep);
     }
   }
 
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print("nbr sent: "); oled.println(nbrOfSentData);
-  oled.print("deep sleep: "); oled.println(deepSleep);
+  oled.print(F("nbr sent: ")); oled.println(nbrOfSentData);
+  oled.print(F("deep sleep: ")); oled.println(deepSleep);
+  oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
   oled.display();
 
   sendDataLastButtonState = sendDataButtonState;
+  gpsLastButtonState = gpsButtonState;
   sleepLastButtonState = sleepButtonState;
 
   if (deepSleep) {
@@ -129,45 +185,45 @@ void readAndSendSensorData() {
   int reading = analogRead(sensorPin);
   char radiopacket[14] = "sensor:      ";
   itoa(reading, radiopacket+7, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
+  Serial.print(F("Sending ")); Serial.println(radiopacket);
   radiopacket[13] = 0;
 
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print("Sending "); oled.println(radiopacket);
+  oled.print(F("Sending ")); oled.println(radiopacket);
   oled.display();
 
-  Serial.println("Sending..."); delay(10);
+  Serial.println(F("Sending...")); delay(10);
   rf95.send((uint8_t *)radiopacket, 20);
 
-  oled.println("Waiting for response");
+  oled.println(F("Waiting for response"));
   oled.display();
 
-  Serial.println("Waiting for packet to complete..."); delay(10);
+  Serial.println(F("Waiting for packet to complete...")); delay(10);
   rf95.waitPacketSent();
 
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println("Waiting for reply..."); delay(10);
+  Serial.println(F("Waiting for reply...")); delay(10);
   if (rf95.waitAvailableTimeout(1000)) {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
       digitalWrite(LED, HIGH);
-      Serial.print("Got reply: "); Serial.println((char*)buf);
-      Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
-      oled.print("Reply: "); oled.println((char*)buf);
-      oled.print("RSSI: "); oled.println(rf95.lastRssi(), DEC);
+      Serial.print(F("Got reply: ")); Serial.println((char*)buf);
+      Serial.print(F("RSSI: ")); Serial.println(rf95.lastRssi(), DEC);
+      oled.print(F("Reply: ")); oled.println((char*)buf);
+      oled.print(F("RSSI: ")); oled.println(rf95.lastRssi(), DEC);
       oled.display();
     } else {
-      Serial.println("Receive failed");
-      oled.println("Receive failed");
+      Serial.println(F("Receive failed"));
+      oled.println(F("Receive failed"));
       oled.display();
     }
   } else {
-    Serial.println("No reply, is there a listener around?");
-    oled.println("No reply");
+    Serial.println(F("No reply, is there a listener around?"));
+    oled.println(F("No reply"));
     oled.display();
   }
 
