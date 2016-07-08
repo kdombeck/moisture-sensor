@@ -130,20 +130,20 @@ void loop() {
   }
 
   // read gps and check to see if the gps should be sent
-  if (!deepSleep) {
-    char c = GPS.read();
-    if (GPS.newNMEAreceived()) {
-      Serial.println(GPS.lastNMEA());
-      if (GPS.parse(GPS.lastNMEA())) {
-        Serial.println(GPS.milliseconds);
-        if (GPS.fix) {
-          lastLatitudeDegrees = GPS.latitudeDegrees;
-          lastLongitudeDegrees = GPS.longitudeDegrees;
-          Serial.print(F("last lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
-        }
-      }
-    }
-  }
+//  if (!deepSleep) {
+//    char c = GPS.read();
+//    if (GPS.newNMEAreceived()) {
+//      Serial.println(GPS.lastNMEA());
+//      if (GPS.parse(GPS.lastNMEA())) {
+//        Serial.println(GPS.milliseconds);
+//        if (GPS.fix) {
+//          lastLatitudeDegrees = GPS.latitudeDegrees;
+//          lastLongitudeDegrees = GPS.longitudeDegrees;
+//          Serial.print(F("last lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+//        }
+//      }
+//    }
+//  }
   int gpsButtonState = digitalRead(gpsButtonPin);
   if (gpsButtonState != gpsLastButtonState) {
     if (gpsButtonState == LOW) {
