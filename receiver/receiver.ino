@@ -22,6 +22,8 @@ Adafruit_FeatherOLED_WiFi oled = Adafruit_FeatherOLED_WiFi();
 // Blinky on receipt
 #define LED 13
 
+int received = 0;
+
 void setup() {
   // radio setup
   pinMode(LED, OUTPUT);
@@ -61,6 +63,8 @@ void setup() {
   oled.init();
 }
 
+uint32_t timer = millis();
+
 void loop() {
   if (rf95.available()) {
     // Should be a message for us now
@@ -68,6 +72,8 @@ void loop() {
     uint8_t len = sizeof(buf);
 
     if (rf95.recv(buf, &len)) {
+      received++;
+      timer = millis(); // reset the timer
       digitalWrite(LED, HIGH);
       RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
@@ -91,12 +97,16 @@ void loop() {
       Serial.println("Receive failed");
       oled.println("Receive failed");
     }
-
-    delay(1000);
   }
 
-  oled.clearDisplay();
-  oled.setCursor(0,0);
-  oled.println("Waiting for data");
-  oled.display();
+  // if millis() or timer wraps around, we'll just reset it
+  if (timer > millis()) timer = millis();
+
+  // display old data for a period of time so that you can see it
+  if (millis() - timer > 2000) {
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.print("received: "); oled.println(received);
+    oled.display();
+  }
 }
