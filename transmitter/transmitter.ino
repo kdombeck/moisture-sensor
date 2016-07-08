@@ -1,6 +1,6 @@
 #include <RH_RF95.h>
 #include <Adafruit_SleepyDog.h>
-#include "Adafruit_GPS.h"
+//#include <Adafruit_GPS.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -28,8 +28,8 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 const int sendDataButtonPin = 9;
 int sendDataLastButtonState = 0;
 
-const int gpsButtonPin = 6;
-int gpsLastButtonState = 0;
+//const int gpsButtonPin = 6;
+//int gpsLastButtonState = 0;
 
 const int sleepButtonPin = 5;
 int sleepLastButtonState = 0;
@@ -39,15 +39,14 @@ bool deepSleep = false;
 
 Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
-// Sensor config
 int sensorPin = A0;
 
 // GPS setup
-Adafruit_GPS GPS(&Serial1);
-float lastLatitudeDegrees, lastLongitudeDegrees;
+//Adafruit_GPS GPS(&Serial1);
+//float lastLatitudeDegrees, lastLongitudeDegrees;
 
 void setup() {
-//  while ( ! Serial ) { delay( 10 ); }
+//  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
   Serial.begin(115200);
 
   // radio setup
@@ -83,20 +82,20 @@ void setup() {
 
   // GPS setup
   // 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
-  GPS.begin(9600);
+//  GPS.begin(9600);
   // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+//  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   // uncomment this line to turn on only the "minimum recommended" data
   //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
   // For parsing data, we don't suggest using anything but either RMC only or RMC+GGA since
   // the parser doesn't care about other sentences at this time
   // Set the update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+//  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
   // For the parsing code to work nicely and have time to sort thru the data, and
   // print it out we don't suggest using anything higher than 1 Hz
 
   // Request updates on antenna status, comment out to keep quiet
-  GPS.sendCommand(PGCMD_ANTENNA);
+//  GPS.sendCommand(PGCMD_ANTENNA);
 
   // oled setup
   oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
@@ -112,11 +111,11 @@ void setup() {
   delay(2000);
 
   pinMode(sendDataButtonPin, INPUT_PULLUP);
-  pinMode(gpsButtonPin, INPUT_PULLUP);
+//  pinMode(gpsButtonPin, INPUT_PULLUP);
   pinMode(sleepButtonPin, INPUT_PULLUP);
 
   // Ask for firmware version
-  Serial1.println(PMTK_Q_RELEASE);
+//  Serial1.println(PMTK_Q_RELEASE);
 }
 
 void loop() {
@@ -144,13 +143,13 @@ void loop() {
 //      }
 //    }
 //  }
-  int gpsButtonState = digitalRead(gpsButtonPin);
-  if (gpsButtonState != gpsLastButtonState) {
-    if (gpsButtonState == LOW) {
-      // if the current state is LOW then the button was pressed
-      Serial.print(F("send gps lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
-    }
-  }
+//  int gpsButtonState = digitalRead(gpsButtonPin);
+//  if (gpsButtonState != gpsLastButtonState) {
+//    if (gpsButtonState == LOW) {
+//      // if the current state is LOW then the button was pressed
+//      Serial.print(F("send gps lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+//    }
+//  }
 
   // check to see if the device should be put into deep sleep
   int sleepButtonState = digitalRead(sleepButtonPin);
@@ -166,11 +165,11 @@ void loop() {
   oled.setCursor(0,0);
   oled.print(F("nbr sent: ")); oled.println(nbrOfSentData);
   oled.print(F("deep sleep: ")); oled.println(deepSleep);
-  oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
+//  oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
   oled.display();
 
   sendDataLastButtonState = sendDataButtonState;
-  gpsLastButtonState = gpsButtonState;
+//  gpsLastButtonState = gpsButtonState;
   sleepLastButtonState = sleepButtonState;
 
   if (deepSleep) {
@@ -193,20 +192,20 @@ void readAndSendSensorData() {
   oled.print(F("Sending ")); oled.println(radiopacket);
   oled.display();
 
-  Serial.println(F("Sending...")); delay(10);
+  delay(10);
   rf95.send((uint8_t *)radiopacket, 20);
 
   oled.println(F("Waiting for response"));
   oled.display();
 
-  Serial.println(F("Waiting for packet to complete...")); delay(10);
+  Serial.println(F("Waiting to complete")); delay(10);
   rf95.waitPacketSent();
 
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println(F("Waiting for reply...")); delay(10);
+  Serial.println(F("Waiting for reply")); delay(10);
   if (rf95.waitAvailableTimeout(1000)) {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
@@ -222,7 +221,7 @@ void readAndSendSensorData() {
       oled.display();
     }
   } else {
-    Serial.println(F("No reply, is there a listener around?"));
+    Serial.println(F("No reply"));
     oled.println(F("No reply"));
     oled.display();
   }
