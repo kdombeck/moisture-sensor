@@ -39,7 +39,9 @@ bool deepSleep = false;
 
 Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
-int sensorPin = A0;
+// Sensor config
+int sensorPowerPin = A0;
+int sensorPins[] = {A1, A2, A3};
 
 // GPS setup
 //Adafruit_GPS GPS(&Serial1);
@@ -110,6 +112,8 @@ void setup() {
 
   delay(2000);
 
+  pinMode(sensorPowerPin, OUTPUT);
+  digitalWrite(sensorPowerPin, LOW);
   pinMode(sendDataButtonPin, INPUT_PULLUP);
 //  pinMode(gpsButtonPin, INPUT_PULLUP);
   pinMode(sleepButtonPin, INPUT_PULLUP);
@@ -178,10 +182,25 @@ void loop() {
 }
 
 void readAndSendSensorData() {
+  // turn on the power to the sensors
+  digitalWrite(sensorPowerPin, HIGH);
+  delay(100); // warm them up
+
+  // collect and send the data for each one of the sensors
+  for (int i = 0; i < sizeof(sensorPins) / sizeof(int); i++) {
+    readAndSendSensorData(sensorPins[i]);
+  }
+
+  // turn the power off to the sensors to not wear them out
+  digitalWrite(sensorPowerPin, LOW);
+}
+
+void readAndSendSensorData(int pin) {
+  Serial.print(F("collection/sending pin ")); Serial.println(pin);
   nbrOfSentData++;
 
-  analogRead(sensorPin); // throw this one away so that we get a good reading on the next one
-  int reading = analogRead(sensorPin);
+  analogRead(pin); // throw this one away so that we get a good reading on the next one
+  int reading = analogRead(pin);
   char radiopacket[14] = "sensor:      ";
   itoa(reading, radiopacket+7, 10);
   Serial.print(F("Sending ")); Serial.println(radiopacket);
