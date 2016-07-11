@@ -188,23 +188,24 @@ void readAndSendSensorData() {
 
   // collect and send the data for each one of the sensors
   for (int i = 0; i < sizeof(sensorPins) / sizeof(int); i++) {
-    readAndSendSensorData(sensorPins[i]);
+    readAndSendSensorData(i);
   }
 
   // turn the power off to the sensors to not wear them out
   digitalWrite(sensorPowerPin, LOW);
 }
 
-void readAndSendSensorData(int pin) {
-  Serial.print(F("collection/sending pin ")); Serial.println(pin);
+void readAndSendSensorData(int sensorNbr) {
   nbrOfSentData++;
 
-  analogRead(pin); // throw this one away so that we get a good reading on the next one
-  int reading = analogRead(pin);
-  char radiopacket[14] = "sensor:      ";
-  itoa(reading, radiopacket+7, 10);
+  analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
+  int reading = analogRead(sensorPins[sensorNbr]);
+  char radiopacket[15] = "SN: ,     ";
+  itoa(sensorNbr + 1, radiopacket + 3, 10);
+  radiopacket[4] = ',';
+  itoa(reading, radiopacket + 5, 10);
   Serial.print(F("Sending ")); Serial.println(radiopacket);
-  radiopacket[13] = 0;
+  radiopacket[11] = 0;
 
   oled.clearDisplay();
   oled.setCursor(0,0);
