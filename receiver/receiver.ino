@@ -83,7 +83,7 @@ void loop() {
 
       oled.clearDisplay();
       oled.setCursor(0,0);
-      oled.print("Received: "); oled.println((char*)buf);
+      oled.print("Got: "); oled.println((char*)buf);
       oled.display();
 
       // Send a reply

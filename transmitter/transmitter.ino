@@ -5,6 +5,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+// !!! Change this value for each Feather that you have !!!
+const char featherId = '1';
+
 // Radio Config
 // for feather32u4
 #define RFM95_CS 8
@@ -40,8 +43,8 @@ bool deepSleep = false;
 Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
 // Sensor config
-int sensorPowerPin = A0;
-int sensorPins[] = {A1, A2, A3};
+const int sensorPowerPin = A0;
+const int sensorPins[] = {A1, A2, A3};
 
 // GPS setup
 //Adafruit_GPS GPS(&Serial1);
@@ -169,6 +172,7 @@ void loop() {
   oled.setCursor(0,0);
   oled.print(F("nbr sent: ")); oled.println(nbrOfSentData);
   oled.print(F("deep sleep: ")); oled.println(deepSleep);
+  oled.print(F("Feather Id: ")); oled.println(featherId);
 //  oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
   oled.display();
 
@@ -200,16 +204,17 @@ void readAndSendSensorData(int sensorNbr) {
 
   analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
   int reading = analogRead(sensorPins[sensorNbr]);
-  char radiopacket[15] = "SN: ,     ";
-  itoa(sensorNbr + 1, radiopacket + 3, 10);
-  radiopacket[4] = ',';
-  itoa(reading, radiopacket + 5, 10);
+  char radiopacket[16] = "FI: ,SN: ,     ";
+  radiopacket[3] = featherId;
+  itoa(sensorNbr + 1, radiopacket + 8, 10);
+  radiopacket[9] = ',';
+  itoa(reading, radiopacket + 10, 10);
   Serial.print(F("Sending ")); Serial.println(radiopacket);
-  radiopacket[11] = 0;
+  radiopacket[15] = 0;
 
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print(F("Sending ")); oled.println(radiopacket);
+  oled.print(F("Send ")); oled.println(radiopacket);
   oled.display();
 
   delay(10);
