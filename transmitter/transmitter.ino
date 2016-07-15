@@ -9,15 +9,17 @@
 const char featherId = '1';
 
 // Radio Config
-// for feather32u4
-#define RFM95_CS 8
-#define RFM95_RST 4
-#define RFM95_INT 7
-
-// for feather m0
-//#define RFM95_CS 8
-//#define RFM95_RST 4
-//#define RFM95_INT 3
+#ifdef __AVR_ATmega32U4__
+  // for feather32u4
+  #define RFM95_CS 8
+  #define RFM95_RST 4
+  #define RFM95_INT 7
+#else
+  // for feather m0
+  #define RFM95_CS 8
+  #define RFM95_RST 4
+  #define RFM95_INT 3
+#endif
 
 #define RF95_FREQ 915.0
 
