@@ -1,11 +1,8 @@
 #include <RH_RF95.h>
 #include <Adafruit_SleepyDog.h>
-
-#ifdef ARDUINO_ARCH_SAMD
-#endif
-
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "secrets.h"
 
 // Radio Config
 #ifdef ARDUINO_ARCH_SAMD
@@ -25,9 +22,6 @@
   #define RFM95_RST 4
   #define RFM95_INT 7
 #endif
-
-// !!! Change this value for each Feather that you have !!!
-const char featherId = '1';
 
 #define RF95_FREQ 915.0
 
@@ -187,7 +181,7 @@ void loop() {
   oled.setCursor(0,0);
   oled.print(F("nbr sent: ")); oled.println(nbrOfSentData);
   oled.print(F("deep sleep: ")); oled.println(deepSleep);
-  oled.print(F("Feather Id: ")); oled.println(featherId);
+  oled.print(F("feather id: ")); oled.println(FEATHER_ID);
 #ifdef ARDUINO_ARCH_SAMD
   oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
 #endif
@@ -221,7 +215,7 @@ void readAndSendSensorData(int sensorNbr) {
   analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
   int reading = analogRead(sensorPins[sensorNbr]);
   char radiopacket[16] = "FI: ,SN: ,     ";
-  radiopacket[3] = featherId;
+  radiopacket[3] = FEATHER_ID;
   itoa(sensorNbr + 1, radiopacket + 8, 10);
   radiopacket[9] = ',';
   itoa(reading, radiopacket + 10, 10);
