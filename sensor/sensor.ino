@@ -203,7 +203,7 @@ void loop() {
     oled.clearDisplay();
     oled.setCursor(0,0);
     oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleep);
-    oled.print(F("feather id: ")); oled.println(FEATHER_ID);
+    oled.print(F("ftr id: ")); oled.print(FEATHER_ID); oled.print(F(" bat ")); oled.println(readBatteryVoltage());
 #ifdef ARDUINO_ARCH_SAMD
     oled.print(F("lt")); oled.print(GPS.latitudeDegrees, 4); oled.print(F(" ln")); oled.println(GPS.longitudeDegrees, 4);
     oled.print(F("fix ")); oled.print(GPS.fix); oled.print(F(" qual ")); oled.print(GPS.fixquality); oled.print(F(" sats ")); oled.println(GPS.satellites);
@@ -241,22 +241,26 @@ void readAndSendSensorData() {
 }
 
 void readAndSendBatteryData() {
-//  delay(500); // if a button was pressed time is needed to make sure they let go
+  String data = String(F("FI-"));
+  data.concat(FEATHER_ID);
+  data.concat(F("-BAT,"));
+  data.concat(readBatteryVoltage());
+
+  sendData(data);
+}
+
+float readBatteryVoltage() {
+//  delay(500); // if a button was pressed time is needed to make sure they let go otherwise you will get an invalid reading
+  analogRead(VOLTAGE_BATTERY_PIN); // throw the first one away
   float measuredvbat = analogRead(VOLTAGE_BATTERY_PIN);
   measuredvbat *= 2;    // we divided by 2, so multiply back
   measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
   measuredvbat /= 1024; // convert to voltage
-  Serial.print(F("VBat: ")); Serial.println(measuredvbat);
-
-  String data = String(F("FI-"));
-  data.concat(FEATHER_ID);
-  data.concat(F("-BAT,"));
-  data.concat(measuredvbat);
-
-  sendData(data);
 
   // reset the send data pin back to digital so the A button works
   pinMode(SEND_DATA_BUTTON_PIN, INPUT_PULLUP);
+
+  return measuredvbat;
 }
 
 #ifdef ARDUINO_ARCH_SAMD
