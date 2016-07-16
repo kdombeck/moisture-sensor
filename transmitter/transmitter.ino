@@ -241,7 +241,7 @@ void readAndSendSensorData(int sensorNbr) {
   oled.println(F("Waiting for response"));
   oled.display();
 
-  Serial.println(F("Waiting to complete")); delay(10);
+  Serial.println(F("Waiting to complete"));
   rf95.waitPacketSent();
 
   // Now wait for a reply
