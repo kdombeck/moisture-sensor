@@ -150,8 +150,8 @@ void loop() {
       if (GPS.parse(GPS.lastNMEA())) {
         Serial.print(F("Fix: ")); Serial.print((int)GPS.fix); Serial.print(F(" quality: ")); Serial.println((int)GPS.fixquality);
         if (GPS.fix) {
-          Serial.print(F("lat ")); Serial.print(GPS.latitudeDegrees, 5); Serial.print(F(" lon ")); Serial.println(GPS.longitudeDegrees, 5);
-          Serial.print(F("Satellites: ")); Serial.println((int)GPS.satellites);
+          Serial.print(F("lat ")); Serial.print(GPS.latitudeDegrees, 5); Serial.print(F(" lon ")); Serial.print(GPS.longitudeDegrees, 5);
+          Serial.print(F(" Satellites: ")); Serial.println((int)GPS.satellites);
         }
       }
     }
@@ -227,14 +227,19 @@ void readAndSendSensorData() {
 
 #ifdef ARDUINO_ARCH_SAMD
 void sendGpsData() {
+  char outstr[10];
+
   String data = String("gps/csv,FI-");
   data.concat(FEATHER_ID);
   data.concat(",");
-  data.concat(GPS.latitudeDegrees);
+  sprintf(outstr, "%f", GPS.latitudeDegrees);
+  data.concat(outstr);
   data.concat(',');
-  data.concat(GPS.longitudeDegrees);
+  sprintf(outstr, "%f", GPS.longitudeDegrees);
+  data.concat(outstr);
   data.concat(',');
-  data.concat(GPS.altitude);
+  sprintf(outstr, "%f", GPS.altitude);
+  data.concat(outstr);
 
   char dataBuf[data.length() + 1];
   data.toCharArray(dataBuf, data.length() + 1);
