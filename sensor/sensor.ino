@@ -252,6 +252,17 @@ void readAndSendBatteryData() {
 
 #ifdef ARDUINO_ARCH_SAMD
 void sendGpsData() {
+  if (!GPS.fix) {
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.println(F("No GPS fix yet"));
+    oled.println(F("So not sending"));
+    oled.display();
+    Serial.println(F("No GPS fix, not sending"));
+    delay(2000);
+    return;
+  }
+
   char outstr[10];
 
   String data = String(F("gps/csv,FI-"));
