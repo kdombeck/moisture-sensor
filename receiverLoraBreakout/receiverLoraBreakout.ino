@@ -109,7 +109,7 @@ void loop() {
 
     if (rf95.recv(buf, &len)) {
 //      RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: "); Serial.println((char*)buf);
+      Serial.print("Got:  "); Serial.println((char*)buf);
       Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
       String message = String((char*)buf);
@@ -125,20 +125,20 @@ void loop() {
       char payloadBuf[payload.length()];
       payload.toCharArray(payloadBuf, payload.length() + 1);
 
-      Serial.print("feed name "); Serial.println(feedNameBuf);
-      Serial.print("payload   "); Serial.println(payloadBuf);
+      Serial.print("feed name: "); Serial.println(feedNameBuf);
+      Serial.print("payload:   "); Serial.println(payloadBuf);
 
+      char reply[16];
       if (mqtt.publish(feedNameBuf, payloadBuf)) {
-        Serial.println("OK!");
+        strncpy(reply, "MQTT OK", 7);
       } else {
-        Serial.println("Failed");
+        strncpy(reply, "MQTT failed", 11);
       }
 
       // Send a reply
-      uint8_t data[] = "And hello back to you";
-      rf95.send(data, sizeof(data));
+      rf95.send((uint8_t *)reply, sizeof(reply));
       rf95.waitPacketSent();
-      Serial.println("Sent a reply");
+      Serial.print("Sent reply: "); Serial.println(reply);
     } else {
       Serial.println("Receive failed");
     }
