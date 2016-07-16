@@ -33,13 +33,13 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 // Oled Config
 // buttons a = 9, b = 6, c = 5
-const int sendDataButtonPin = 9;
+#define SEND_DATA_BUTTON_PIN 9
 int sendDataLastButtonState = 0;
 
-const int gpsButtonPin = 6;
+#define GPS_BUTTON_PIN 6
 int gpsLastButtonState = 0;
 
-const int sleepButtonPin = 5;
+#define SLEEP_BUTTON_PIN 5
 int sleepLastButtonState = 0;
 
 int nbrOfSentData = 0;
@@ -50,8 +50,8 @@ Adafruit_SSD1306 oled = Adafruit_SSD1306();
 uint32_t oledRefreshTimer = millis();
 
 // Sensor config
-const int sensorPowerPin = A0;
-const int sensorPins[] = {A1, A2, A3};
+#define SENSOR_POWER_PIN A0
+const int SENSOR_PINS[] = {A1, A2, A3};
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -126,16 +126,16 @@ void setup() {
 
   delay(2000);
 
-  pinMode(sensorPowerPin, OUTPUT);
-  digitalWrite(sensorPowerPin, LOW);
-  pinMode(sendDataButtonPin, INPUT_PULLUP);
-  pinMode(gpsButtonPin, INPUT_PULLUP);
-  pinMode(sleepButtonPin, INPUT_PULLUP);
+  pinMode(SENSOR_POWER_PIN, OUTPUT);
+  digitalWrite(SENSOR_POWER_PIN, LOW);
+  pinMode(SEND_DATA_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(GPS_BUTTON_PIN, INPUT_PULLUP);
+  pinMode(SLEEP_BUTTON_PIN, INPUT_PULLUP);
 }
 
 void loop() {
   // check to see if sensor data should be sent
-  int sendDataButtonState = digitalRead(sendDataButtonPin);
+  int sendDataButtonState = digitalRead(SEND_DATA_BUTTON_PIN);
   if (sendDataButtonState != sendDataLastButtonState) {
     if (sendDataButtonState == LOW) {
       // if the current state is LOW then the button was pressed
@@ -159,7 +159,7 @@ void loop() {
       }
     }
   }
-  int gpsButtonState = digitalRead(gpsButtonPin);
+  int gpsButtonState = digitalRead(GPS_BUTTON_PIN);
   if (gpsButtonState != gpsLastButtonState) {
     if (gpsButtonState == LOW) {
       // if the current state is LOW then the button was pressed
@@ -171,7 +171,7 @@ void loop() {
 #endif
 
   // check to see if the device should be put into deep sleep
-  int sleepButtonState = digitalRead(sleepButtonPin);
+  int sleepButtonState = digitalRead(SLEEP_BUTTON_PIN);
   if (sleepButtonState != sleepLastButtonState) {
     if (sleepButtonState == LOW) {
       // if the current state is LOW then the button was pressed
@@ -208,13 +208,13 @@ void loop() {
 
 void readAndSendSensorData() {
   // turn on the power to the sensors
-  digitalWrite(sensorPowerPin, HIGH);
+  digitalWrite(SENSOR_POWER_PIN, HIGH);
   delay(100); // warm them up
 
   // collect and send the data for each one of the sensors
-  for (int sensorNbr = 0; sensorNbr < sizeof(sensorPins) / sizeof(int); sensorNbr++) {
-    analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
-    int reading = analogRead(sensorPins[sensorNbr]);
+  for (int sensorNbr = 0; sensorNbr < sizeof(SENSOR_PINS) / sizeof(int); sensorNbr++) {
+    analogRead(SENSOR_PINS[sensorNbr]); // throw this one away so that we get a good reading on the next one
+    int reading = analogRead(SENSOR_PINS[sensorNbr]);
     char data[16] = "FI- -SN- ,     ";
     data[3] = FEATHER_ID;
     itoa(sensorNbr + 1, data + 8, 10);
@@ -225,7 +225,7 @@ void readAndSendSensorData() {
   }
 
   // turn the power off to the sensors to not wear them out
-  digitalWrite(sensorPowerPin, LOW);
+  digitalWrite(SENSOR_POWER_PIN, LOW);
 }
 
 void readAndSendBatteryData() {
@@ -247,7 +247,7 @@ void readAndSendBatteryData() {
   sendData(dataBuf, data.length() + 1);
 
   // reset the send data pin back to digital so the A button works
-  pinMode(sendDataButtonPin, INPUT_PULLUP);
+  pinMode(SEND_DATA_BUTTON_PIN, INPUT_PULLUP);
 }
 
 #ifdef ARDUINO_ARCH_SAMD
