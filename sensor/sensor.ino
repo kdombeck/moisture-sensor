@@ -45,11 +45,11 @@ bool deepSleep = false;
 
 Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
+uint32_t oledRefreshTimer = millis();
+
 // Sensor config
 const int sensorPowerPin = A0;
 const int sensorPins[] = {A1, A2, A3};
-
-uint32_t oledRefreshTimer = millis();
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection

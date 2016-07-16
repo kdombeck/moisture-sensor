@@ -1,9 +1,11 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 #include <RHSoftwareSPI.h>
-#include "Adafruit_MQTT.h"
-#include "Adafruit_MQTT_Client.h"
+#include <Adafruit_MQTT.h>
+#include <Adafruit_MQTT_Client.h>
 #include <Adafruit_WINC1500.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include "secrets.h"
 
 // LoRa breakout setup
@@ -48,6 +50,15 @@ Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, AIO_SERVERPORT, MQTT_CLIENTID, M
 
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
 const char FEED_NAME_PREFIX[] PROGMEM = AIO_USERNAME "/feeds/";
+
+// Oled Config
+Adafruit_SSD1306 oled = Adafruit_SSD1306();
+
+uint32_t oledRefreshTimer = millis();
+
+int nbrMessagesReceived = 0;
+int nbrMqttSuccessfulSent = 0;
+int nbrMqttFailedToSend = 0;
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -94,6 +105,15 @@ void setup() {
     while (true);
   }
   Serial.println("ATWINC OK!");
+
+  // oled setup
+  oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  oled.setTextSize(1);
+  oled.setTextColor(WHITE);
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.println("LoRa Gateway");
+  oled.display();
 }
 
 void loop() {
@@ -108,7 +128,12 @@ void loop() {
     uint8_t len = sizeof(buf);
 
     if (rf95.recv(buf, &len)) {
+      nbrMessagesReceived++;
       //RH_RF95::printBuffer("Received: ", buf, len);
+      oled.clearDisplay();
+      oled.setCursor(0,0);
+      oled.print("rvd: "); oled.println((char*)buf);
+      oled.display();
       Serial.print("Got:  "); Serial.println((char*)buf);
       Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
@@ -130,18 +155,36 @@ void loop() {
 
       char reply[16];
       if (mqtt.publish(feedNameBuf, payloadBuf)) {
+        nbrMqttSuccessfulSent++;
         strncpy(reply, "MQTT OK", 7);
       } else {
+        nbrMqttFailedToSend++;
         strncpy(reply, "MQTT failed", 11);
       }
 
       // Send a reply
+      oled.print("reply: "); oled.println(reply);
+      oled.display();
       rf95.send((uint8_t *)reply, sizeof(reply));
       rf95.waitPacketSent();
       Serial.print("Sent reply: "); Serial.println(reply);
     } else {
       Serial.println("Receive failed");
     }
+  }
+
+    // if millis() or timer wraps around, we'll just reset it
+  if (oledRefreshTimer > millis()) oledRefreshTimer = millis();
+
+  // print out the current stats only so often
+  if (millis() - oledRefreshTimer > 2000) {
+    oledRefreshTimer = millis(); // reset the timer
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.print("nbr received     "); oled.println(nbrMessagesReceived);
+    oled.print("nbr MQTT success "); oled.println(nbrMqttSuccessfulSent);
+    oled.print("nbr MQTT failed  "); oled.println(nbrMqttFailedToSend);
+    oled.display();
   }
 }
 
@@ -152,6 +195,11 @@ void MQTT_connect() {
 
   // attempt to connect to Wifi network:
   while (WiFi.status() != WL_CONNECTED) {
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.println("connecting to WIFI");
+    oled.println(WIFI_SSID);
+    oled.display();
     Serial.print("Attempting to connect to SSID: "); Serial.println(WIFI_SSID);
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -169,14 +217,26 @@ void MQTT_connect() {
     return;
   }
 
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.println("connecting to MQTT");
+  oled.display();
   Serial.print("Connecting to MQTT... ");
 
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
-       Serial.println(mqtt.connectErrorString(ret));
-       Serial.println("Retrying MQTT connection in 5 seconds...");
-       mqtt.disconnect();
-       delay(5000);  // wait 5 seconds
+      oled.clearDisplay();
+      oled.setCursor(0,0);
+      oled.println("Faild to conn MQTT");
+      oled.println(mqtt.connectErrorString(ret));
+      oled.display();
+      Serial.println(mqtt.connectErrorString(ret));
+      Serial.println("Retrying MQTT connection in 5 seconds...");
+      mqtt.disconnect();
+      delay(5000);  // wait 5 seconds
   }
+
+  oled.println("connected to MQTT");
+  oled.display();
   Serial.println("MQTT Connected!");
 }
 
