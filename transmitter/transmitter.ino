@@ -146,7 +146,7 @@ void loop() {
   if (!deepSleep) {
     char c = GPS.read();
     if (GPS.newNMEAreceived()) {
-      Serial.println(GPS.lastNMEA());
+      //Serial.println(GPS.lastNMEA());
       if (GPS.parse(GPS.lastNMEA())) {
         Serial.print(F("Fix: ")); Serial.print((int)GPS.fix); Serial.print(F(" quality: ")); Serial.println((int)GPS.fixquality);
         if (GPS.fix) {
@@ -160,7 +160,7 @@ void loop() {
   if (gpsButtonState != gpsLastButtonState) {
     if (gpsButtonState == LOW) {
       // if the current state is LOW then the button was pressed
-      Serial.println(F("TODO send GPS"));
+      sendGpsData();
     }
   }
 
@@ -224,6 +224,24 @@ void readAndSendSensorData() {
   // turn the power off to the sensors to not wear them out
   digitalWrite(sensorPowerPin, LOW);
 }
+
+#ifdef ARDUINO_ARCH_SAMD
+void sendGpsData() {
+  String data = String("gps/csv,FI-");
+  data.concat(FEATHER_ID);
+  data.concat(",");
+  data.concat(GPS.latitudeDegrees);
+  data.concat(',');
+  data.concat(GPS.longitudeDegrees);
+  data.concat(',');
+  data.concat(GPS.altitude);
+
+  char dataBuf[data.length() + 1];
+  data.toCharArray(dataBuf, data.length() + 1);
+
+  sendData(dataBuf, data.length() + 1);
+}
+#endif
 
 void sendData(char* data, int dataLength) {
   nbrOfSentData++;
