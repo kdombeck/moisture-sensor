@@ -53,6 +53,9 @@ uint32_t oledRefreshTimer = millis();
 #define SENSOR_POWER_PIN A0
 const int SENSOR_PINS[] = {A1, A2, A3};
 
+#define SEND_DATA_INTERVAL_MILLIS 900000 // 15 minutes
+uint32_t sendDataTimer = millis();
+
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
   Serial.begin(115200);
@@ -178,6 +181,16 @@ void loop() {
       deepSleep = !deepSleep;
       Serial.print(F("sleep ")); Serial.println(deepSleep);
     }
+  }
+
+  // if millis() or timer wraps around, we'll just reset it
+  if (sendDataTimer > millis()) sendDataTimer = millis();
+
+  // automatically send the sensor data based on a time interval
+  if (millis() - sendDataTimer > SEND_DATA_INTERVAL_MILLIS) {
+    sendDataTimer = millis(); // reset the timer
+    readAndSendSensorData();
+    readAndSendBatteryData();
   }
 
   // if millis() or timer wraps around, we'll just reset it
