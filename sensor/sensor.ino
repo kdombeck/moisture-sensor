@@ -227,14 +227,13 @@ void readAndSendSensorData() {
   // collect and send the data for each one of the sensors
   for (int sensorNbr = 0; sensorNbr < sizeof(SENSOR_PINS) / sizeof(int); sensorNbr++) {
     analogRead(SENSOR_PINS[sensorNbr]); // throw this one away so that we get a good reading on the next one
-    int reading = analogRead(SENSOR_PINS[sensorNbr]);
-    char data[16] = "FI- -SN- ,     ";
-    data[3] = FEATHER_ID;
-    itoa(sensorNbr + 1, data + 8, 10);
-    data[9] = ',';
-    itoa(reading, data + 10, 10);
-    data[15] = 0;
-    sendData(data, 16);
+    String data = String(F("FI-"));
+    data.concat(FEATHER_ID);
+    data.concat(F("-SN-"));
+    data.concat(sensorNbr + 1);
+    data.concat(F(","));
+    data.concat(analogRead(SENSOR_PINS[sensorNbr]));
+    sendData(data);
   }
 
   // turn the power off to the sensors to not wear them out
@@ -254,10 +253,7 @@ void readAndSendBatteryData() {
   data.concat(F("-BAT,"));
   data.concat(measuredvbat);
 
-  char dataBuf[data.length() + 1];
-  data.toCharArray(dataBuf, data.length() + 1);
-
-  sendData(dataBuf, data.length() + 1);
+  sendData(data);
 
   // reset the send data pin back to digital so the A button works
   pinMode(SEND_DATA_BUTTON_PIN, INPUT_PULLUP);
@@ -290,14 +286,11 @@ void sendGpsData() {
   sprintf(outstr, "%f", GPS.altitude);
   data.concat(outstr);
 
-  char dataBuf[data.length() + 1];
-  data.toCharArray(dataBuf, data.length() + 1);
-
-  sendData(dataBuf, data.length() + 1);
+  sendData(data);
 }
 #endif
 
-void sendData(char* data, int dataLength) {
+void sendData(const String& data) {
   nbrOfSentData++;
   Serial.print(F("Sending ")); Serial.println(data);
 
@@ -307,7 +300,9 @@ void sendData(char* data, int dataLength) {
   oled.display();
 
   delay(10);
-  rf95.send((uint8_t *)data, dataLength);
+  char dataBuf[data.length() + 1];
+  data.toCharArray(dataBuf, data.length() + 1);
+  rf95.send((uint8_t *)dataBuf, data.length() + 1);
 
   oled.println(F("Waiting for response"));
   oled.display();
