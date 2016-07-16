@@ -15,7 +15,6 @@
 
   // GPS setup
   Adafruit_GPS GPS(&Serial1);
-  float lastLatitudeDegrees, lastLongitudeDegrees;
 #else
   // for feather32u4
   #define RFM95_CS 8
@@ -49,6 +48,8 @@ Adafruit_SSD1306 oled = Adafruit_SSD1306();
 // Sensor config
 const int sensorPowerPin = A0;
 const int sensorPins[] = {A1, A2, A3};
+
+uint32_t oledRefreshTimer = millis();
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -116,7 +117,7 @@ void setup() {
   oled.setCursor(0,0);
   oled.println(F("A - send sensor data"));
 #ifdef ARDUINO_ARCH_SAMD
-  oled.println(F("B - send GPS (TODO)"));
+  oled.println(F("B - send GPS"));
 #endif
   oled.println(F("C - deep sleep"));
   oled.display();
@@ -147,11 +148,10 @@ void loop() {
     if (GPS.newNMEAreceived()) {
       Serial.println(GPS.lastNMEA());
       if (GPS.parse(GPS.lastNMEA())) {
-        Serial.println(GPS.milliseconds);
+        Serial.print(F("Fix: ")); Serial.print((int)GPS.fix); Serial.print(F(" quality: ")); Serial.println((int)GPS.fixquality);
         if (GPS.fix) {
-          lastLatitudeDegrees = GPS.latitudeDegrees;
-          lastLongitudeDegrees = GPS.longitudeDegrees;
-          Serial.print(F("last lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+          Serial.print(F("lat ")); Serial.print(GPS.latitudeDegrees, 5); Serial.print(F(" lon ")); Serial.println(GPS.longitudeDegrees, 5);
+          Serial.print(F("Satellites: ")); Serial.println((int)GPS.satellites);
         }
       }
     }
@@ -160,7 +160,7 @@ void loop() {
   if (gpsButtonState != gpsLastButtonState) {
     if (gpsButtonState == LOW) {
       // if the current state is LOW then the button was pressed
-      Serial.print(F("send gps lat ")); Serial.print(lastLatitudeDegrees); Serial.print(F(" lon ")); Serial.println(lastLongitudeDegrees);
+      Serial.println(F("TODO send GPS"));
     }
   }
 
@@ -177,15 +177,23 @@ void loop() {
     }
   }
 
-  oled.clearDisplay();
-  oled.setCursor(0,0);
-  oled.print(F("nbr sent: ")); oled.println(nbrOfSentData);
-  oled.print(F("deep sleep: ")); oled.println(deepSleep);
-  oled.print(F("feather id: ")); oled.println(FEATHER_ID);
+  // if millis() or timer wraps around, we'll just reset it
+  if (oledRefreshTimer > millis()) oledRefreshTimer = millis();
+
+  // print out the current stats only so often
+  // if you print out the stats every time it will not allow the GPS enough time to read the next reading
+  if (millis() - oledRefreshTimer > 500) {
+    oledRefreshTimer = millis(); // reset the timer
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleep);
+    oled.print(F("feather id: ")); oled.println(FEATHER_ID);
 #ifdef ARDUINO_ARCH_SAMD
-  oled.print(F("lat: ")); oled.print(lastLatitudeDegrees); oled.print(F(" lon: ")); oled.println(lastLongitudeDegrees);
+    oled.print(F("lt")); oled.print(GPS.latitudeDegrees, 4); oled.print(F(" ln")); oled.println(GPS.longitudeDegrees, 4);
+    oled.print(F("fix ")); oled.print(GPS.fix); oled.print(F(" qual ")); oled.print(GPS.fixquality); oled.print(F(" sats ")); oled.println(GPS.satellites);
 #endif
-  oled.display();
+    oled.display();
+  }
 
   sendDataLastButtonState = sendDataButtonState;
   sleepLastButtonState = sleepButtonState;
