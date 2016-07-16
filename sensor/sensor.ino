@@ -29,6 +29,8 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // Blinky on receipt
 #define LED 13
 
+#define VOLTAGE_BATTERY_PIN A7
+
 // Oled Config
 // buttons a = 9, b = 6, c = 5
 const int sendDataButtonPin = 9;
@@ -138,6 +140,7 @@ void loop() {
     if (sendDataButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       readAndSendSensorData();
+      readAndSendBatteryData();
     }
   }
 
@@ -225,19 +228,41 @@ void readAndSendSensorData() {
   digitalWrite(sensorPowerPin, LOW);
 }
 
+void readAndSendBatteryData() {
+//  delay(500); // if a button was pressed time is needed to make sure they let go
+  float measuredvbat = analogRead(VOLTAGE_BATTERY_PIN);
+  measuredvbat *= 2;    // we divided by 2, so multiply back
+  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+  measuredvbat /= 1024; // convert to voltage
+  Serial.print(F("VBat: ")); Serial.println(measuredvbat);
+
+  String data = String(F("FI-"));
+  data.concat(FEATHER_ID);
+  data.concat(F("-BAT,"));
+  data.concat(measuredvbat);
+
+  char dataBuf[data.length() + 1];
+  data.toCharArray(dataBuf, data.length() + 1);
+
+  sendData(dataBuf, data.length() + 1);
+
+  // reset the send data pin back to digital so the A button works
+  pinMode(sendDataButtonPin, INPUT_PULLUP);
+}
+
 #ifdef ARDUINO_ARCH_SAMD
 void sendGpsData() {
   char outstr[10];
 
-  String data = String("gps/csv,FI-");
+  String data = String(F("gps/csv,FI-"));
   data.concat(FEATHER_ID);
-  data.concat(",");
+  data.concat(F(','));
   sprintf(outstr, "%f", GPS.latitudeDegrees);
   data.concat(outstr);
-  data.concat(',');
+  data.concat(F(','));
   sprintf(outstr, "%f", GPS.longitudeDegrees);
   data.concat(outstr);
-  data.concat(',');
+  data.concat(F(','));
   sprintf(outstr, "%f", GPS.altitude);
   data.concat(outstr);
 
