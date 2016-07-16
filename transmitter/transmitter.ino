@@ -209,34 +209,33 @@ void readAndSendSensorData() {
   delay(100); // warm them up
 
   // collect and send the data for each one of the sensors
-  for (int i = 0; i < sizeof(sensorPins) / sizeof(int); i++) {
-    readAndSendSensorData(i);
+  for (int sensorNbr = 0; sensorNbr < sizeof(sensorPins) / sizeof(int); sensorNbr++) {
+    analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
+    int reading = analogRead(sensorPins[sensorNbr]);
+    char data[16] = "FI- -SN- ,     ";
+    data[3] = FEATHER_ID;
+    itoa(sensorNbr + 1, data + 8, 10);
+    data[9] = ',';
+    itoa(reading, data + 10, 10);
+    data[15] = 0;
+    sendData(data, 16);
   }
 
   // turn the power off to the sensors to not wear them out
   digitalWrite(sensorPowerPin, LOW);
 }
 
-void readAndSendSensorData(int sensorNbr) {
+void sendData(char* data, int dataLength) {
   nbrOfSentData++;
-
-  analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
-  int reading = analogRead(sensorPins[sensorNbr]);
-  char radiopacket[16] = "FI- -SN- ,     ";
-  radiopacket[3] = FEATHER_ID;
-  itoa(sensorNbr + 1, radiopacket + 8, 10);
-  radiopacket[9] = ',';
-  itoa(reading, radiopacket + 10, 10);
-  Serial.print(F("Sending ")); Serial.println(radiopacket);
-  radiopacket[15] = 0;
+  Serial.print(F("Sending ")); Serial.println(data);
 
   oled.clearDisplay();
   oled.setCursor(0,0);
-  oled.print(F("Send ")); oled.println(radiopacket);
+  oled.print(F("Send ")); oled.println(data);
   oled.display();
 
   delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
+  rf95.send((uint8_t *)data, dataLength);
 
   oled.println(F("Waiting for response"));
   oled.display();
@@ -248,7 +247,7 @@ void readAndSendSensorData(int sensorNbr) {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println(F("Waiting for reply")); delay(10);
+  Serial.println(F("Waiting for reply"));
   if (rf95.waitAvailableTimeout(1000)) {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
