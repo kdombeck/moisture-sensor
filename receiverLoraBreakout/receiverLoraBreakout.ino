@@ -46,10 +46,8 @@ const char MQTT_PASSWORD[] PROGMEM  = AIO_KEY;
 
 Adafruit_MQTT_Client mqtt(&client, MQTT_SERVER, AIO_SERVERPORT, MQTT_CLIENTID, MQTT_USERNAME, MQTT_PASSWORD);
 
-// Setup a feed called 'moisture' for publishing.
 // Notice MQTT paths for AIO follow the form: <username>/feeds/<feedname>
-const char MOISTURE_FEED[] PROGMEM = AIO_USERNAME "/feeds/moisture";
-Adafruit_MQTT_Publish moisture = Adafruit_MQTT_Publish(&mqtt, MOISTURE_FEED);
+const char FEED_NAME_PREFIX[] PROGMEM = AIO_USERNAME "/feeds/";
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -110,13 +108,27 @@ void loop() {
     uint8_t len = sizeof(buf);
 
     if (rf95.recv(buf, &len)) {
-      RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.println((char*)buf);
-      Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);
+//      RH_RF95::printBuffer("Received: ", buf, len);
+      Serial.print("Got: "); Serial.println((char*)buf);
+      Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
-      if (moisture.publish((char*)buf)) {
+      String message = String((char*)buf);
+
+      // the feed name is first part of message prior to the first ',' (comma)
+      String feedName = String(FEED_NAME_PREFIX);
+      feedName.concat(message.substring(0, message.indexOf(',')));
+      char feedNameBuf[feedName.length()];
+      feedName.toCharArray(feedNameBuf, feedName.length() + 1);
+
+      // the payload is everything after the first ',' (comma)
+      String payload = String(message.substring(message.indexOf(',') + 1));
+      char payloadBuf[payload.length()];
+      payload.toCharArray(payloadBuf, payload.length() + 1);
+
+      Serial.print("feed name "); Serial.println(feedNameBuf);
+      Serial.print("payload   "); Serial.println(payloadBuf);
+
+      if (mqtt.publish(feedNameBuf, payloadBuf)) {
         Serial.println("OK!");
       } else {
         Serial.println("Failed");

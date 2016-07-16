@@ -222,7 +222,7 @@ void readAndSendSensorData(int sensorNbr) {
 
   analogRead(sensorPins[sensorNbr]); // throw this one away so that we get a good reading on the next one
   int reading = analogRead(sensorPins[sensorNbr]);
-  char radiopacket[16] = "FI: ,SN: ,     ";
+  char radiopacket[16] = "FI- -SN- ,     ";
   radiopacket[3] = FEATHER_ID;
   itoa(sensorNbr + 1, radiopacket + 8, 10);
   radiopacket[9] = ',';
