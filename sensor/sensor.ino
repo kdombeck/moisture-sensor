@@ -62,6 +62,7 @@ void setup() {
 
   // radio setup
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
