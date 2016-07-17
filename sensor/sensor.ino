@@ -12,6 +12,7 @@
   #define RFM95_CS 8
   #define RFM95_RST 4
   #define RFM95_INT 3
+  #define VOLTAGE_BATTERY_PIN A7
 
   // GPS setup
   Adafruit_GPS GPS(&Serial1);
@@ -20,6 +21,7 @@
   #define RFM95_CS 8
   #define RFM95_RST 4
   #define RFM95_INT 7
+  #define VOLTAGE_BATTERY_PIN A9
 #endif
 
 #define RF95_FREQ 915.0
@@ -28,8 +30,6 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 // Blinky on receipt
 #define LED 13
-
-#define VOLTAGE_BATTERY_PIN A7
 
 // Oled Config
 // buttons a = 9, b = 6, c = 5
@@ -251,6 +251,7 @@ void readAndSendBatteryData() {
 
 float readBatteryVoltage() {
 //  delay(500); // if a button was pressed time is needed to make sure they let go otherwise you will get an invalid reading
+  pinMode(SEND_DATA_BUTTON_PIN, INPUT); // sent pin to input otherwise we will not get a valid reading
   analogRead(VOLTAGE_BATTERY_PIN); // throw the first one away
   float measuredvbat = analogRead(VOLTAGE_BATTERY_PIN);
   measuredvbat *= 2;    // we divided by 2, so multiply back
