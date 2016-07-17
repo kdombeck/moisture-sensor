@@ -38,4 +38,4 @@ The Gateway can be used with or without the Sensors. It does not know anything a
 
 You will need to copy [secrets.h.template](gateway/secrets.h.template) to secrets.h and follow the instruction in there for WIFI and Adafruit.io credentials.
 
-The only logic it performs on the data it receives is that the first part (everything prior to the first comma) of the message is the MQTT topic that the rest of the data is what will be sent. For example `FI-A-SN-1,123` will be sending data `123` to topic `Your-Username\feeds\FI-A-SN-1`.
+The only logic it performs on the data it receives is that the first part (everything prior to the first comma) of the message is the MQTT topic that the rest of the data is what will be sent. For example `FI-A-SN-1,123` will be sending data `123` to topic `AIO_USERNAME/feeds/FI-A-SN-1`.
