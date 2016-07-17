@@ -179,7 +179,7 @@ void loop() {
     if (sleepButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       deepSleep = !deepSleep;
-      Serial.print(F("sleep ")); Serial.println(deepSleep);
+      Serial.print(F("deep sleep set to ")); Serial.println(deepSleep);
     }
   }
 
