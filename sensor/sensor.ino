@@ -42,9 +42,6 @@ int gpsLastButtonState = 0;
 #define SLEEP_BUTTON_PIN 5
 int sleepLastButtonState = 0;
 
-int nbrOfSentData = 0;
-bool deepSleep = false;
-
 Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
 uint32_t oledRefreshTimer = millis();
@@ -53,8 +50,15 @@ uint32_t oledRefreshTimer = millis();
 #define SENSOR_POWER_PIN A0
 const int SENSOR_PINS[] = {A1, A2, A3};
 
+// Global state
+#define DEEP_SLEEP_MILLIS 1000
 #define SEND_DATA_INTERVAL_MILLIS 900000 // 15 minutes
+#define NBR_OF_DEEP_SLEEPS_TO_SEND_DATA SEND_DATA_INTERVAL_MILLIS / DEEP_SLEEP_MILLIS
+
 uint32_t sendDataTimer = millis();
+uint32_t nbrOfDeepSleeps = 0;
+uint32_t nbrOfSentData = 0;
+bool deepSleepMode = false;
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -179,8 +183,9 @@ void loop() {
   if (sleepButtonState != sleepLastButtonState) {
     if (sleepButtonState == LOW) {
       // if the current state is LOW then the button was pressed
-      deepSleep = !deepSleep;
-      Serial.print(F("deep sleep set to ")); Serial.println(deepSleep);
+      deepSleepMode = !deepSleepMode;
+      nbrOfDeepSleeps = 0;
+      Serial.print(F("deep sleep set to ")); Serial.println(deepSleepMode);
     }
   }
 
@@ -188,8 +193,10 @@ void loop() {
   if (sendDataTimer > millis()) sendDataTimer = millis();
 
   // automatically send the sensor data based on a time interval
-  if (millis() - sendDataTimer > SEND_DATA_INTERVAL_MILLIS) {
+  if (millis() - sendDataTimer > SEND_DATA_INTERVAL_MILLIS ||
+      nbrOfDeepSleeps > NBR_OF_DEEP_SLEEPS_TO_SEND_DATA) {
     sendDataTimer = millis(); // reset the timer
+    nbrOfDeepSleeps = 0;
     readAndSendSensorData();
     readAndSendBatteryData();
   }
@@ -199,11 +206,12 @@ void loop() {
 
   // print out the current stats only so often
   // if you print out the stats every time it will not allow the GPS enough time to read the next reading
-  if (millis() - oledRefreshTimer > 500) {
+  if (millis() - oledRefreshTimer > 500 ||
+      deepSleepMode) {
     oledRefreshTimer = millis(); // reset the timer
     oled.clearDisplay();
     oled.setCursor(0,0);
-    oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleep);
+    oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleepMode);
     oled.print(F("ftr id: ")); oled.print(FEATHER_ID); oled.print(F(" bat ")); oled.println(readBatteryVoltage());
 #ifdef ARDUINO_ARCH_SAMD
     oled.print(F("lt")); oled.print(GPS.latitudeDegrees, 4); oled.print(F(" ln")); oled.println(GPS.longitudeDegrees, 4);
@@ -215,8 +223,11 @@ void loop() {
   sendDataLastButtonState = sendDataButtonState;
   sleepLastButtonState = sleepButtonState;
 
-  if (deepSleep) {
-    Watchdog.sleep(1000);
+  if (deepSleepMode) {
+    // when in deep sleep mode millis() is no longer valid
+    // so keep track of the number of deep sleeps for timer intervals
+    nbrOfDeepSleeps++;
+    Watchdog.sleep(DEEP_SLEEP_MILLIS);
   }
 }
 
