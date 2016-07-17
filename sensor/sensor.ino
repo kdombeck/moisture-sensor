@@ -261,8 +261,9 @@ void readAndSendBatteryData() {
   sendData(data);
 }
 
+// NOTE: if 'A' button was pressed, time is needed to make sure they let go
+// otherwise you will get an invalid reading
 float readBatteryVoltage() {
-//  delay(500); // if a button was pressed time is needed to make sure they let go otherwise you will get an invalid reading
   pinMode(SEND_DATA_BUTTON_PIN, INPUT); // sent pin to input otherwise we will not get a valid reading
   analogRead(VOLTAGE_BATTERY_PIN); // throw the first one away
   float measuredvbat = analogRead(VOLTAGE_BATTERY_PIN);
