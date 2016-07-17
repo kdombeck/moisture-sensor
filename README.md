@@ -21,6 +21,8 @@ You will need to copy [secrets.h.template](sensor/secrets.h.template) to secrets
 #### Types of messages
 ###### Sensor data
 The analog reading from the sensor will be sent to a topic with the format of `FI` Feather Id from secrets.h `SN` sensor number from SENSOR_PINS array in [sensor.ino](sensor/sensor.ino). Example: `FI-A-SN-1` will be for Feather Id `A` and sensor `1`.
+
+Power will only be applied to the sensors while taking a reading via pin `A0`. Constant power to the moisture sensors will cause undo wear.
 ###### Battery voltage
 Battery voltage will be sent to a topic for each Feather Id. Example: `FI-A-BAT`.
 ###### GPS data
