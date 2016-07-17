@@ -30,6 +30,7 @@ GPS data will only be sent when the button is pressed since it is expected that 
 #### Parts
 * [Wifi Feather M0](https://www.adafruit.com/products/3010)
 * [LoRa breakout](https://www.adafruit.com/products/3072)
+* [OLED display](https://www.adafruit.com/products/2900) (optional)
 
 The Gateway can be used with or without the Sensors. It does not know anything about the data is is passing along to Adafruit.io.
 
