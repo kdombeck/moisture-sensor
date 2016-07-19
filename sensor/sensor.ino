@@ -224,10 +224,15 @@ void loop() {
   sleepLastButtonState = sleepButtonState;
 
   if (deepSleepMode) {
+#ifdef ARDUINO_ARCH_SAMD
+    // Watchdog.sleep isn't implemented yet for M0 so a deplay will save around 3.5ma
+    delay(DEEP_SLEEP_MILLIS);
+#else
     // when in deep sleep mode millis() is no longer valid
     // so keep track of the number of deep sleeps for timer intervals
     nbrOfDeepSleeps++;
     Watchdog.sleep(DEEP_SLEEP_MILLIS);
+#endif
   }
 }
 
