@@ -154,7 +154,7 @@ void loop() {
 
 #ifdef ARDUINO_ARCH_SAMD
   // read gps and check to see if the gps should be sent
-  if (!deepSleep) {
+  if (!deepSleepMode) {
     char c = GPS.read();
     if (GPS.newNMEAreceived()) {
       //Serial.println(GPS.lastNMEA());
