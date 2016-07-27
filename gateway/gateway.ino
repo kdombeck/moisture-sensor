@@ -159,6 +159,7 @@ void loop() {
         strncpy(reply, "MQTT OK", 7);
       } else {
         nbrMqttFailedToSend++;
+        Serial.println("MQTT failed");
         strncpy(reply, "MQTT failed", 11);
       }
 
@@ -173,7 +174,7 @@ void loop() {
     }
   }
 
-    // if millis() or timer wraps around, we'll just reset it
+  // if millis() or timer wraps around, we'll just reset it
   if (oledRefreshTimer > millis()) oledRefreshTimer = millis();
 
   // print out the current stats only so often
