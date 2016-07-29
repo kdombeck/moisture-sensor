@@ -299,13 +299,13 @@ void sendGpsData() {
 
   String data = String(F("gps/csv,FI-"));
   data.concat(FEATHER_ID);
-  data.concat(F(','));
+  data.concat(F(","));
   sprintf(outstr, "%f", GPS.latitudeDegrees);
   data.concat(outstr);
-  data.concat(F(','));
+  data.concat(F(","));
   sprintf(outstr, "%f", GPS.longitudeDegrees);
   data.concat(outstr);
-  data.concat(F(','));
+  data.concat(F(","));
   sprintf(outstr, "%f", GPS.altitude);
   data.concat(outstr);
 
