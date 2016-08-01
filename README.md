@@ -14,7 +14,7 @@ There are 2 main parts to this system the Sensor and Gateway. The sensor will co
 
 The moisture sensors act as resistors, so what is shown below are potentiometers in their place. The GPS and OLED display are just stacked on top of the LoRa Feather.
 
-![GitHub Logo](sensor/wiringDiagram.png)
+![Sensor wiring diagram](sensor/wiringDiagram.png)
 
 You will need to copy [secrets.h.template](sensor/secrets.h.template) to secrets.h and follow the instruction in there on how to create a unique id for each Feather you will be using. This unique id will be part of the MQTT topic so if there are duplicates you will have multiple sensors sending to the same topic and not know which one it came from.
 
@@ -41,3 +41,5 @@ The Gateway can be used with or without the Sensors. It does not know anything a
 You will need to copy [secrets.h.template](gateway/secrets.h.template) to secrets.h and follow the instruction in there for WIFI and Adafruit.io credentials.
 
 The only logic it performs on the data it receives is that the first part (everything prior to the first comma) of the message is the MQTT topic that the rest of the data is what will be sent. For example `FI-A-SN-1,123` will be sending data `123` to topic `AIO_USERNAME/feeds/FI-A-SN-1`.
+
+![Gateway wiring diagram](gateway/wiringDiagram.png)
