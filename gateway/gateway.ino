@@ -1,6 +1,5 @@
 #include <SPI.h>
 #include <RH_RF95.h>
-#include <RHSoftwareSPI.h>
 #include <Adafruit_MQTT.h>
 #include <Adafruit_MQTT_Client.h>
 #include <Adafruit_WINC1500.h>
@@ -9,17 +8,12 @@
 #include "secrets.h"
 
 // LoRa breakout setup
-#define RFM95_SCK 13
-#define RFM95_MOSI 11
-#define RFM95_MISO 12
-RHSoftwareSPI loraSpi;
-
 #define RFM95_CS 10
 #define RFM95_RST 5
 #define RFM95_INT 6
 #define RF95_FREQ 915.0
 
-RH_RF95 rf95(RFM95_CS, RFM95_INT, loraSpi);
+RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 // MQTT and WIFI setup
 #define WINC_CS   8
@@ -65,7 +59,6 @@ void setup() {
   Serial.begin(115200);
 
   Serial.println("LoRa setup");
-  loraSpi.setPins(RFM95_MISO, RFM95_MOSI, RFM95_SCK);
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
