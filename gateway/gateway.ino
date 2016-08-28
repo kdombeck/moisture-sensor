@@ -9,7 +9,7 @@
 
 // LoRa breakout setup
 #define RFM95_CS 10
-#define RFM95_RST 5
+#define RFM95_RST 11
 #define RFM95_INT 6
 #define RF95_FREQ 915.0
 
