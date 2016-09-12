@@ -148,7 +148,6 @@ void loop() {
     if (sendDataButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       readAndSendSensorData();
-      readAndSendBatteryData();
     }
   }
 
@@ -198,7 +197,6 @@ void loop() {
     sendDataTimer = millis(); // reset the timer
     nbrOfDeepSleeps = 0;
     readAndSendSensorData();
-    readAndSendBatteryData();
   }
 
   // if millis() or timer wraps around, we'll just reset it
@@ -212,7 +210,7 @@ void loop() {
     oled.clearDisplay();
     oled.setCursor(0,0);
     oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleepMode);
-    oled.print(F("ftr id: ")); oled.print(FEATHER_ID); oled.print(F(" bat ")); oled.println(readBatteryVoltage());
+    oled.print(F("ftr id: ")); oled.print(STATION_ID); oled.print(F(" bat ")); oled.println(readBatteryVoltage());
 #ifdef ARDUINO_ARCH_SAMD
     oled.print(F("lt")); oled.print(GPS.latitudeDegrees, 4); oled.print(F(" ln")); oled.println(GPS.longitudeDegrees, 4);
     oled.print(F("fix ")); oled.print(GPS.fix); oled.print(F(" qual ")); oled.print(GPS.fixquality); oled.print(F(" sats ")); oled.println(GPS.satellites);
@@ -241,29 +239,23 @@ void readAndSendSensorData() {
   digitalWrite(SENSOR_POWER_PIN, HIGH);
   delay(100); // warm them up
 
+  String data = String(STATION_ID);
+  data.concat(F(",sensor"));
+
   // collect and send the data for each one of the sensors
   for (int sensorNbr = 0; sensorNbr < sizeof(SENSOR_PINS) / sizeof(int); sensorNbr++) {
     analogRead(SENSOR_PINS[sensorNbr]); // throw this one away so that we get a good reading on the next one
-    String data = String(F("FI-"));
-    data.concat(FEATHER_ID);
-    data.concat(F("-SN-"));
+    data.concat(F(",moisture"));
     data.concat(sensorNbr + 1);
-    data.concat(F(","));
+    data.concat(F("="));
     data.concat(analogRead(SENSOR_PINS[sensorNbr]));
-    sendData(data);
   }
 
+  data.concat(F(",battery="));
+  data.concat(readBatteryVoltage());
+  sendData(data);
   // turn the power off to the sensors to not wear them out
   digitalWrite(SENSOR_POWER_PIN, LOW);
-}
-
-void readAndSendBatteryData() {
-  String data = String(F("FI-"));
-  data.concat(FEATHER_ID);
-  data.concat(F("-BAT,"));
-  data.concat(readBatteryVoltage());
-
-  sendData(data);
 }
 
 // NOTE: if 'A' button was pressed, time is needed to make sure they let go
@@ -298,7 +290,7 @@ void sendGpsData() {
   char outstr[10];
 
   String data = String(F("gps/csv,FI-"));
-  data.concat(FEATHER_ID);
+  data.concat(STATION_ID);
   data.concat(F(","));
   sprintf(outstr, "%f", GPS.latitudeDegrees);
   data.concat(outstr);
@@ -338,7 +330,10 @@ void sendData(const String& data) {
   uint8_t len = sizeof(buf);
 
   Serial.println(F("Waiting for reply"));
-  if (rf95.waitAvailableTimeout(1000)) {
+  if (rf95.waitAvailableTimeout(2000)) {
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
       digitalWrite(LED, HIGH);

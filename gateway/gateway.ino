@@ -132,50 +132,7 @@ void loop() {
       Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
       String message = String((char*)buf);
-      char reply[16];
-
-      if (isValidMessage(message)) {
-        // the feed name is first part of message prior to the first ',' (comma)
-        String feedName = String(FEED_NAME_PREFIX);
-        feedName.concat(message.substring(0, message.indexOf(',')));
-        char feedNameBuf[feedName.length() + 1];
-        feedName.toCharArray(feedNameBuf, feedName.length() + 1);
-
-        oled.print("feedName: "); oled.println(feedNameBuf);
-        oled.display();
-
-        // the payload is everything after the first ',' (comma)
-        String payload = String(message.substring(message.indexOf(',') + 1));
-        char payloadBuf[payload.length() + 1];
-        payload.toCharArray(payloadBuf, payload.length() + 1);
-
-        Serial.print("feed name: "); Serial.println(feedNameBuf);
-        Serial.print("payload:   "); Serial.println(payloadBuf);
-        oled.print("MQTT: "); oled.println(payloadBuf);
-        oled.display();
-
-        if (mqtt.publish(feedNameBuf, payloadBuf)) {
-          nbrMqttSuccessfulSent++;
-          strncpy(reply, "MQTT OK", 7);
-          oled.println("MQTT OK");
-          oled.display();
-        } else {
-          nbrMqttFailedToSend++;
-          Serial.println("MQTT failed");
-          strncpy(reply, "MQTT failed", 11);
-        }
-      } else {
-          strncpy(reply, "Invalid message", 15);
-      }
-
-      // Send a reply
-      oled.clearDisplay();
-      oled.setCursor(0,0);
-      oled.print("reply: "); oled.println(reply);
-      oled.display();
-      rf95.send((uint8_t *)reply, sizeof(reply));
-      rf95.waitPacketSent();
-      Serial.print("Sent reply: "); Serial.println(reply);
+      processMessage(message);
     } else {
       Serial.println("Receive failed");
     }
@@ -197,6 +154,76 @@ void loop() {
   }
 }
 
+void processMessage(const String& message) {
+  if (isValidMessage(message)) {
+    int firstCommaPos = message.indexOf(',');
+    String stationId = message.substring(0, firstCommaPos);
+    int secondCommaPos = message.indexOf(',', firstCommaPos + 1);
+    String messageType = message.substring(firstCommaPos + 1, secondCommaPos);
+
+    if (messageType.equals("sensor")) {
+      int mqttSuccess = 0;
+      int mqttFailure = 0;
+      int startPos = secondCommaPos;
+      while (startPos > 0) {
+        // get key=value pair
+        int endPos = message.indexOf(',', startPos + 1);
+        if (endPos == -1) {
+          endPos = message.length();
+        }
+        String keyValue = message.substring(startPos + 1, endPos);
+        int equalPos = keyValue.indexOf('=');
+        String key = keyValue.substring(0, equalPos);
+        String value = keyValue.substring(equalPos + 1, keyValue.length());
+
+        String feedName = String(FEED_NAME_PREFIX);
+        feedName.concat(stationId);
+        feedName.concat("-");
+        feedName.concat(key);
+        char feedNameBuf[feedName.length() + 1];
+        feedName.toCharArray(feedNameBuf, feedName.length() + 1);
+    
+        oled.print("feedName: "); oled.println(feedNameBuf);
+        oled.display();
+    
+        char valueBuf[value.length() + 1];
+        value.toCharArray(valueBuf, value.length() + 1);
+    
+        Serial.print("feed name: "); Serial.println(feedNameBuf);
+        Serial.print("value:     "); Serial.println(valueBuf);
+        oled.print("MQTT: "); oled.println(valueBuf);
+        oled.display();
+    
+        if (mqtt.publish(feedNameBuf, valueBuf)) {
+          nbrMqttSuccessfulSent++;
+          mqttSuccess++;
+          oled.println("MQTT OK");
+          oled.display();
+        } else {
+          nbrMqttFailedToSend++;
+          mqttFailure++;
+          Serial.println("MQTT failed");
+        }
+
+        // find next comma
+        startPos = message.indexOf(',', startPos + 1);
+      }
+
+      String reply = String("succ ");
+      reply.concat(mqttSuccess);
+      reply.concat(" fail ");
+      reply.concat(mqttFailure);
+      sendLoRaReply(reply);
+    } else {
+      nbrInvalidMessages++;
+      sendLoRaReply(String("Unknown message type"));
+      Serial.print("Unknown message type "); Serial.println(messageType);
+    }
+  } else {
+    sendLoRaReply(String("Invalid message"));
+  }
+}
+
 bool isValidMessage(const String& message) {
   // check to see that all characters are ASCII
   int messageLength = message.length();
@@ -213,6 +240,19 @@ bool isValidMessage(const String& message) {
   }
 
   return true;
+}
+
+void sendLoRaReply(const String& message) {
+  oled.clearDisplay();
+  oled.setCursor(0,0);
+  oled.print("reply: "); oled.println(message);
+  oled.display();
+  Serial.print("LoRa reply: "); Serial.println(message);
+
+  char reply[message.length() + 1];
+  message.toCharArray(reply, message.length() + 1);
+  rf95.send((uint8_t *)reply, sizeof(reply));
+  rf95.waitPacketSent();
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
