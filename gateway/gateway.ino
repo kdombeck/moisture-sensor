@@ -53,6 +53,7 @@ uint32_t oledRefreshTimer = millis();
 int nbrMessagesReceived = 0;
 int nbrMqttSuccessfulSent = 0;
 int nbrMqttFailedToSend = 0;
+int nbrInvalidMessages = 0;
 
 void setup() {
 //  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
@@ -131,32 +132,45 @@ void loop() {
       Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
       String message = String((char*)buf);
-
-      // the feed name is first part of message prior to the first ',' (comma)
-      String feedName = String(FEED_NAME_PREFIX);
-      feedName.concat(message.substring(0, message.indexOf(',')));
-      char feedNameBuf[feedName.length() + 1];
-      feedName.toCharArray(feedNameBuf, feedName.length() + 1);
-
-      // the payload is everything after the first ',' (comma)
-      String payload = String(message.substring(message.indexOf(',') + 1));
-      char payloadBuf[payload.length() + 1];
-      payload.toCharArray(payloadBuf, payload.length() + 1);
-
-      Serial.print("feed name: "); Serial.println(feedNameBuf);
-      Serial.print("payload:   "); Serial.println(payloadBuf);
-
       char reply[16];
-      if (mqtt.publish(feedNameBuf, payloadBuf)) {
-        nbrMqttSuccessfulSent++;
-        strncpy(reply, "MQTT OK", 7);
+
+      if (isValidMessage(message)) {
+        // the feed name is first part of message prior to the first ',' (comma)
+        String feedName = String(FEED_NAME_PREFIX);
+        feedName.concat(message.substring(0, message.indexOf(',')));
+        char feedNameBuf[feedName.length() + 1];
+        feedName.toCharArray(feedNameBuf, feedName.length() + 1);
+
+        oled.print("feedName: "); oled.println(feedNameBuf);
+        oled.display();
+
+        // the payload is everything after the first ',' (comma)
+        String payload = String(message.substring(message.indexOf(',') + 1));
+        char payloadBuf[payload.length() + 1];
+        payload.toCharArray(payloadBuf, payload.length() + 1);
+
+        Serial.print("feed name: "); Serial.println(feedNameBuf);
+        Serial.print("payload:   "); Serial.println(payloadBuf);
+        oled.print("MQTT: "); oled.println(payloadBuf);
+        oled.display();
+
+        if (mqtt.publish(feedNameBuf, payloadBuf)) {
+          nbrMqttSuccessfulSent++;
+          strncpy(reply, "MQTT OK", 7);
+          oled.println("MQTT OK");
+          oled.display();
+        } else {
+          nbrMqttFailedToSend++;
+          Serial.println("MQTT failed");
+          strncpy(reply, "MQTT failed", 11);
+        }
       } else {
-        nbrMqttFailedToSend++;
-        Serial.println("MQTT failed");
-        strncpy(reply, "MQTT failed", 11);
+          strncpy(reply, "Invalid message", 15);
       }
 
       // Send a reply
+      oled.clearDisplay();
+      oled.setCursor(0,0);
       oled.print("reply: "); oled.println(reply);
       oled.display();
       rf95.send((uint8_t *)reply, sizeof(reply));
@@ -178,8 +192,27 @@ void loop() {
     oled.print("nbr received     "); oled.println(nbrMessagesReceived);
     oled.print("nbr MQTT success "); oled.println(nbrMqttSuccessfulSent);
     oled.print("nbr MQTT failed  "); oled.println(nbrMqttFailedToSend);
+    oled.print("nbr invalid msg  "); oled.println(nbrInvalidMessages);
     oled.display();
   }
+}
+
+bool isValidMessage(const String& message) {
+  // check to see that all characters are ASCII
+  int messageLength = message.length();
+  byte messageBuf[messageLength + 1];
+  message.getBytes(messageBuf, messageLength + 1);
+  for (int byteNbr = 0; byteNbr < messageLength; byteNbr++) {
+    if (messageBuf[byteNbr] < 32 || messageBuf[byteNbr] > 127) {
+      nbrInvalidMessages++;
+      Serial.print("Invalid byte nbr: "); Serial.println(byteNbr); 
+      Serial.print("Invalid byte: "); Serial.println(messageBuf[byteNbr]);
+      Serial.print("Invalid message: "); Serial.println(message);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
@@ -215,12 +248,12 @@ void MQTT_connect() {
   oled.setCursor(0,0);
   oled.println("connecting to MQTT");
   oled.display();
-  Serial.print("Connecting to MQTT... ");
+  Serial.println("Connecting to MQTT... ");
 
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
       oled.clearDisplay();
       oled.setCursor(0,0);
-      oled.println("Faild to conn MQTT");
+      oled.println("Failed to conn MQTT");
       oled.println(mqtt.connectErrorString(ret));
       oled.display();
       Serial.println(mqtt.connectErrorString(ret));
