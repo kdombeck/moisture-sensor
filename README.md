@@ -16,19 +16,21 @@ The moisture sensors act as resistors, so what is shown below are potentiometers
 
 ![Sensor wiring diagram](sensor/wiringDiagram.png)
 
-You will need to copy [secrets.h.template](sensor/secrets.h.template) to secrets.h and follow the instruction in there on how to create a unique id for each Feather you will be using. This unique id will be part of the MQTT topic so if there are duplicates you will have multiple sensors sending to the same topic and not know which one it came from.
+You will need to copy [config.h.template](sensor/config.h.template) to config.h and follow the instruction in there on how to create a unique id for each Feather you will be using. This unique id will be part of the MQTT topic so if there are duplicates you will have multiple sensors sending to the same topic and not know which one it came from.
 
 #### Types of messages
 ###### Sensor data
-The analog reading from the sensor will be sent to a topic with the format of `FI` Feather Id from secrets.h `SN` sensor number from SENSOR_PINS array in [sensor.ino](sensor/sensor.ino). Example: `FI-A-SN-1` will be for Feather Id `A` and sensor `1`.
+The analog reading from the sensor will be sent to a topic with the format of station id from config.h and key from data sent. Example: `A-moisture1` will be for station Id `A` and sensor `moisture1`. Battery voltage will also be sent to a topic `A-battery`.
 
 The number of sensors can be adjusted by adding/removing pins from `SENSOR_PINS` in [sensor.ino](sensor/sensor.ino).
 
 Power will only be applied to the sensors while taking a reading via pin `A0`. Constant power to the moisture sensors will cause undo wear.
-###### Battery voltage
-Battery voltage will be sent to a topic for each Feather Id. Example: `FI-A-BAT`.
+
+Example: A,sensor,moisture1=1.1,moisture2=1.23,moisture3=4.56,battery=3.7
 ###### GPS data
-GPS data will only be sent when the button is pressed since it is expected that these sensors will not be moving. The GPS data for all Feathers will be sent to a single topic called `gps`. The data value will be the Feather Id. Example: `FI-A`. The latitude, longitude, and elevation will be sent to allow you to map each Feather on a map.
+GPS data will only be sent when the button is pressed since it is expected that these sensors will not be moving. The GPS data for all Feathers will be sent to a single topic called `gps`. The data value will be the station id. Example: `A`. The latitude, longitude, and elevation will be sent to allow you to map each Feather on a map.
+
+Example: A,gps,latitude=49.00,longitude=98.00,altitude=200
 
 # Gateway
 #### Parts
@@ -36,10 +38,8 @@ GPS data will only be sent when the button is pressed since it is expected that 
 * [LoRa breakout](https://www.adafruit.com/products/3072)
 * [OLED display](https://www.adafruit.com/products/2900) (optional)
 
-The Gateway can be used with or without the Sensors. It does not know anything about the data is is passing along to Adafruit.io.
+You will need to copy [config.h.template](gateway/config.h.template) to config.h and follow the instruction in there for WIFI and Adafruit.io credentials.
 
-You will need to copy [secrets.h.template](gateway/secrets.h.template) to secrets.h and follow the instruction in there for WIFI and Adafruit.io credentials.
-
-The only logic it performs on the data it receives is that the first part (everything prior to the first comma) of the message is the MQTT topic that the rest of the data is what will be sent. For example `FI-A-SN-1,123` will be sending data `123` to topic `AIO_USERNAME/feeds/FI-A-SN-1`.
+Currently there are only 2 types of messages supported `sensor` and `gps`.
 
 ![Gateway wiring diagram](gateway/wiringDiagram.png)

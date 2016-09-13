@@ -5,7 +5,7 @@
 #include <Adafruit_WINC1500.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "secrets.h"
+#include "config.h"
 
 // LoRa breakout setup
 #define RFM95_CS 10

@@ -2,7 +2,7 @@
 #include <Adafruit_SleepyDog.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "secrets.h"
+#include "config.h"
 
 // Radio Config
 #ifdef ARDUINO_ARCH_SAMD

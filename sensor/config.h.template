@@ -1,0 +1,6 @@
+// copy this file to "config.h" and fill in the following values
+// This is done so that you don't accidentally commit these changes to Git
+
+// Unique station id to be used to distinguish between the different feathers
+#define STATION_ID "UNIQUE-FEATHER-ID"
+
