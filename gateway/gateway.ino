@@ -165,6 +165,7 @@ void processMessage(const String& message) {
       int mqttSuccess = 0;
       int mqttFailure = 0;
       int startPos = secondCommaPos;
+
       while (startPos > 0) {
         // get key=value pair
         int endPos = message.indexOf(',', startPos + 1);
@@ -214,6 +215,69 @@ void processMessage(const String& message) {
       reply.concat(" fail ");
       reply.concat(mqttFailure);
       sendLoRaReply(reply);
+    } else if (messageType.equals("gps")) {
+      String latitude = String();
+      String longitude = String();
+      String altitude = String();
+      int startPos = secondCommaPos;
+
+      while (startPos > 0) {
+        // get key=value pair
+        int endPos = message.indexOf(',', startPos + 1);
+        if (endPos == -1) {
+          endPos = message.length();
+        }
+        String keyValue = message.substring(startPos + 1, endPos);
+        int equalPos = keyValue.indexOf('=');
+        String key = keyValue.substring(0, equalPos);
+        String value = keyValue.substring(equalPos + 1, keyValue.length());
+
+        if (key.equals("latitude")) {
+          latitude = value;
+        } else if (key.equals("longitude")) {
+          longitude = value;
+        } else if (key.equals("altitude")) {
+          altitude = value;
+        } else {
+          Serial.print("Unknown key "); Serial.print(key); Serial.print(" value "); Serial.println(value);
+        }
+
+        // find next comma
+        startPos = message.indexOf(',', startPos + 1);
+      }
+
+      String feedName = String(FEED_NAME_PREFIX);
+      feedName.concat("gps/csv");
+      char feedNameBuf[feedName.length() + 1];
+      feedName.toCharArray(feedNameBuf, feedName.length() + 1);
+
+      oled.print("feedName: "); oled.println(feedNameBuf);
+      oled.display();
+
+      String message = String(stationId);
+      message.concat(",");
+      message.concat(latitude);
+      message.concat(",");
+      message.concat(longitude);
+      message.concat(",");
+      message.concat(altitude);
+
+      char messageBuf[message.length() + 1];
+      message.toCharArray(messageBuf, message.length() + 1);
+
+      Serial.print("feed name: "); Serial.println(feedNameBuf);
+      Serial.print("message:   "); Serial.println(messageBuf);
+      oled.print("MQTT: "); oled.println(messageBuf);
+      oled.display();
+
+      if (mqtt.publish(feedNameBuf, messageBuf)) {
+        oled.println("MQTT OK");
+        oled.display();
+      } else {
+        Serial.println("MQTT failed");
+      }
+
+      sendLoRaReply(String("Success"));
     } else {
       nbrInvalidMessages++;
       sendLoRaReply(String("Unknown message type"));

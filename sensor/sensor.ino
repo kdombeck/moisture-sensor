@@ -251,11 +251,12 @@ void readAndSendSensorData() {
     data.concat(analogRead(SENSOR_PINS[sensorNbr]));
   }
 
+  // turn the power off to the sensors to not wear them out
+  digitalWrite(SENSOR_POWER_PIN, LOW);
+
   data.concat(F(",battery="));
   data.concat(readBatteryVoltage());
   sendData(data);
-  // turn the power off to the sensors to not wear them out
-  digitalWrite(SENSOR_POWER_PIN, LOW);
 }
 
 // NOTE: if 'A' button was pressed, time is needed to make sure they let go
@@ -289,15 +290,14 @@ void sendGpsData() {
 
   char outstr[10];
 
-  String data = String(F("gps/csv,FI-"));
-  data.concat(STATION_ID);
-  data.concat(F(","));
+  String data = String(F(STATION_ID));
+  data.concat(F(",gps,latitude="));
   sprintf(outstr, "%f", GPS.latitudeDegrees);
   data.concat(outstr);
-  data.concat(F(","));
+  data.concat(F(",longitude="));
   sprintf(outstr, "%f", GPS.longitudeDegrees);
   data.concat(outstr);
-  data.concat(F(","));
+  data.concat(F(",altitude="));
   sprintf(outstr, "%f", GPS.altitude);
   data.concat(outstr);
 
