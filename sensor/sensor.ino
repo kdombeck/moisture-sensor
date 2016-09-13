@@ -209,7 +209,7 @@ void loop() {
     oledRefreshTimer = millis(); // reset the timer
     oled.clearDisplay();
     oled.setCursor(0,0);
-    oled.print(F("nbr sent ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleepMode);
+    oled.print(F("nbr snt ")); oled.print(nbrOfSentData); oled.print(F(" dsleep ")); oled.println(deepSleepMode);
     oled.print(F("ftr id: ")); oled.print(STATION_ID); oled.print(F(" bat ")); oled.println(readBatteryVoltage());
 #ifdef ARDUINO_ARCH_SAMD
     oled.print(F("lt")); oled.print(GPS.latitudeDegrees, 4); oled.print(F(" ln")); oled.println(GPS.longitudeDegrees, 4);
