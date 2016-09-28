@@ -114,7 +114,9 @@ void loop() {
   // Ensure the connection to the MQTT server is alive (this will make the first
   // connection and automatically reconnect when disconnected).  See the MQTT_connect
   // function definition further below.
-  MQTT_connect();
+  if (!MQTT_connect()) {
+    return;
+  }
 
   if (rf95.available()) {
     // Should be a message for us now
@@ -321,7 +323,7 @@ void sendLoRaReply(const String& message) {
 
 // Function to connect and reconnect as necessary to the MQTT server.
 // Should be called in the loop function and it will take care if connecting.
-void MQTT_connect() {
+bool MQTT_connect() {
   int8_t ret;
 
   // attempt to connect to Wifi network:
@@ -345,7 +347,7 @@ void MQTT_connect() {
 
   // Stop if already connected.
   if (mqtt.connected()) {
-    return;
+    return true;
   }
 
   oled.clearDisplay();
@@ -354,20 +356,26 @@ void MQTT_connect() {
   oled.display();
   Serial.println("Connecting to MQTT... ");
 
+  int attemps = 0;
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
-      oled.clearDisplay();
-      oled.setCursor(0,0);
-      oled.println("Failed to conn MQTT");
-      oled.println(mqtt.connectErrorString(ret));
-      oled.display();
-      Serial.println(mqtt.connectErrorString(ret));
-      Serial.println("Retrying MQTT connection in 5 seconds...");
-      mqtt.disconnect();
-      delay(5000);  // wait 5 seconds
+    if (attemps++ > 5) {
+      Serial.println("Failed to connect to MQTT after many tries");
+      return false;
+    }
+    oled.clearDisplay();
+    oled.setCursor(0,0);
+    oled.print("Failed to conn MQTT "); oled.println(attemps);
+    oled.println(mqtt.connectErrorString(ret));
+    oled.display();
+    Serial.println(mqtt.connectErrorString(ret));
+    Serial.println("Retrying MQTT connection in 5 seconds...");
+    mqtt.disconnect();
+    delay(5000);  // wait 5 seconds
   }
 
   oled.println("connected to MQTT");
   oled.display();
   Serial.println("MQTT Connected!");
+  return true;
 }
 
