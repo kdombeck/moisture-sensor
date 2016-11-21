@@ -51,7 +51,10 @@ class SensorService:
     def main(self):
         ser = serial.Serial('/dev/ttyACM0', 9600)
         while True:
-             self.processMessage(ser.readline())
+            try:
+                self.processMessage(ser.readline())
+            except Exception as e:
+                logging.exception("failed to process message")
 
 if __name__ == '__main__':
     SensorService().main()
