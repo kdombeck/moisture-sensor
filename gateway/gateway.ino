@@ -130,6 +130,7 @@ void loop() {
       oled.setCursor(0,0);
       oled.print("rvd: "); oled.println((char*)buf);
       oled.display();
+      // do NOT change the format of this message since the RaspberryPi depends on it
       Serial.print("Got:  "); Serial.println((char*)buf);
       Serial.print("RSSI: "); Serial.println(rf95.lastRssi(), DEC);
 
