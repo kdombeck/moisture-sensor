@@ -15,6 +15,7 @@ class SensorService:
         if self.isValidMessage(message):
             logging.info('processing message: ' + message)
             self.insertDB(message[len(MESSAGE_PREFIX):])
+            logging.info('processed message: ' + message)
             return True
         else:
             logging.debug('not processing message: ' + message)
