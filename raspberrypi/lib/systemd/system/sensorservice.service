@@ -1,0 +1,14 @@
+[Unit]
+Description=Service that will take serial data from an Arduino and save it to InfluxDB
+After=influxd.target
+
+[Service]
+#User=influxdb
+#Group=influxdb
+ExecStart=/usr/bin/sensorservice.py
+#KillMode=control-group
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+#Alias=sensorservice.service

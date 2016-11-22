@@ -3,10 +3,9 @@
 apt-get update && apt-get -y upgrade
 apt-get install -y apt-transport-https
 
-echo "install Python3"
-apt-get install -y python3 python3-pip
-pip3 install pyserial
-# pip install pyserial -- for python2
+echo "install Python"
+# apt-get install -y python3 python3-pip
+pip install pyserial
 
 echo "install InfluxDB"
 curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
@@ -16,6 +15,8 @@ test $VERSION_ID = "8" && echo "deb https://repos.influxdata.com/debian jessie s
 
 apt-get update && apt-get install -y influxdb
 systemctl start influxdb
+
+curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE sensordb"
 
 echo "install Grafana"
 curl -OL https://github.com/fg2it/grafana-on-raspberry/releases/download/v3.1.1-wheezy-jessie/grafana_3.1.1-1472506485_armhf.deb
@@ -28,5 +29,12 @@ iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
 systemctl daemon-reload
 systemctl enable grafana-server
 systemctl start grafana-server
+
+echo "install sensor service"
+cp usr/bin/sensorservice/sensorservice.py /usr/bin/sensorservice.py
+cp lib/systemd/system/sensorservice.service /lib/systemd/system/sensorservice.service
+
+systemctl daemon-reload
+systemctl enable sensorservice.service
 
 echo "finished installing"
