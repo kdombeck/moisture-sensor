@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+import logging
+import requests
 import serial
 import string
-import requests
-import logging
+import time
 
 MESSAGE_PREFIX = "Got:  "
 
@@ -50,10 +51,18 @@ class LoraGateway:
         return measure + ',host=' + host + ' ' + measurements
 
     def main(self):
-        ser = serial.Serial('/dev/ttyACM0', 9600)
+        ser = None
+
         while True:
             try:
+                if (ser == None):
+                    ser = serial.Serial('/dev/ttyACM0', 9600)
+
                 self.processMessage(ser.readline())
+            except serial.SerialException as se:
+                logging.warn("Failed to read message from device: " + str(se))
+                ser = None
+                time.sleep(5)
             except Exception as e:
                 logging.exception("failed to process message")
 
