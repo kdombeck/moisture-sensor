@@ -5,10 +5,10 @@ After=influxd.target
 [Service]
 #User=influxdb
 #Group=influxdb
-ExecStart=/usr/bin/sensorservice.py
+ExecStart=/usr/bin/loragateway.py
 #KillMode=control-group
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
-#Alias=sensorservice.service
+#Alias=loragateway.service

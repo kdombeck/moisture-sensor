@@ -30,11 +30,11 @@ systemctl daemon-reload
 systemctl enable grafana-server
 systemctl start grafana-server
 
-echo "install sensor service"
-cp usr/bin/sensorservice/sensorservice.py /usr/bin/sensorservice.py
-cp lib/systemd/system/sensorservice.service /lib/systemd/system/sensorservice.service
+echo "install Lora Gateway"
+cp usr/bin/loragateway/loragateway.py /usr/bin/loragateway.py
+cp lib/systemd/system/loragateway.service /lib/systemd/system/loragateway.service
 
 systemctl daemon-reload
-systemctl enable sensorservice.service
+systemctl enable loragateway.service
 
 echo "finished installing"

@@ -7,7 +7,7 @@ import logging
 
 MESSAGE_PREFIX = "Got:  "
 
-class SensorService:
+class LoraGateway:
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
     def processMessage(self, message):
@@ -58,4 +58,4 @@ class SensorService:
                 logging.exception("failed to process message")
 
 if __name__ == '__main__':
-    SensorService().main()
+    LoraGateway().main()

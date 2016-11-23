@@ -1,11 +1,11 @@
 # coding: utf-8
 
 import unittest
-import sensorservice
+import loragateway
 
-class TestSensorService(unittest.TestCase):
+class TestLoraGateway(unittest.TestCase):
     def setUp(self):
-        self.service = sensorservice.SensorService()
+        self.service = loragateway.LoraGateway()
 
     # def test_process_message(self):
         # need to mock 'requests' for this to work
