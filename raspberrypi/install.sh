@@ -23,8 +23,11 @@ curl -OL https://github.com/fg2it/grafana-on-raspberry/releases/download/v3.1.1-
 apt-get install -y adduser libfontconfig
 dpkg -i grafana_3.1.1-1472506485_armhf.deb
 
-#sed -i 's/;http_port = 3000/http_port = 80/g' /etc/grafana/grafana.ini
-iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
+# iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+# iptables -I INPUT -p tcp --dport 3000 -j ACCEPT
+# iptables -t nat -A PREROUTING -p tcp -m tcp --dport 80 -j REDIRECT --to-port 3000
+# 
+# iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 3000
 
 systemctl daemon-reload
 systemctl enable grafana-server
