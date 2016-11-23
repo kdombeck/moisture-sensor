@@ -3,11 +3,11 @@
 apt-get update && apt-get -y upgrade
 apt-get install -y apt-transport-https
 
-echo "install Python"
+echo "!!! Installing Python !!!!"
 # apt-get install -y python3 python3-pip
 pip install pyserial
 
-echo "install InfluxDB"
+echo "!!!! Installing InfluxDB !!!!"
 curl -sL https://repos.influxdata.com/influxdb.key | apt-key add -
 source /etc/os-release
 test $VERSION_ID = "7" && echo "deb https://repos.influxdata.com/debian wheezy stable" | tee /etc/apt/sources.list.d/influxdb.list
@@ -18,7 +18,15 @@ systemctl start influxdb
 
 curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE sensordb"
 
-echo "install Grafana"
+echo "!!!! Installing Lora Gateway !!!!"
+cp usr/bin/loragateway/loragateway.py /usr/bin/loragateway.py
+cp lib/systemd/system/loragateway.service /lib/systemd/system/loragateway.service
+
+systemctl daemon-reload
+systemctl enable loragateway.service
+systemctl start loragateway
+
+echo "!!!! Installing Grafana !!!!"
 curl -OL https://github.com/fg2it/grafana-on-raspberry/releases/download/v3.1.1-wheezy-jessie/grafana_3.1.1-1472506485_armhf.deb
 apt-get install -y adduser libfontconfig
 dpkg -i grafana_3.1.1-1472506485_armhf.deb
@@ -32,13 +40,5 @@ dpkg -i grafana_3.1.1-1472506485_armhf.deb
 systemctl daemon-reload
 systemctl enable grafana-server
 systemctl start grafana-server
-
-echo "install Lora Gateway"
-cp usr/bin/loragateway/loragateway.py /usr/bin/loragateway.py
-cp lib/systemd/system/loragateway.service /lib/systemd/system/loragateway.service
-
-systemctl daemon-reload
-systemctl enable loragateway.service
-systemctl start loragateway
 
 echo "finished installing"
