@@ -36,5 +36,6 @@ cp lib/systemd/system/loragateway.service /lib/systemd/system/loragateway.servic
 
 systemctl daemon-reload
 systemctl enable loragateway.service
+systemctl start loragateway
 
 echo "finished installing"
