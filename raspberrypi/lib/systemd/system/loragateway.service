@@ -3,7 +3,7 @@ Description=Service that will take serial data from an Arduino and save it to In
 After=influxd.target
 
 [Service]
-ExecStart=/usr/bin/loragateway.py
+ExecStart=/usr/bin/LoraGateway.py
 Restart=on-failure
 
 [Install]
