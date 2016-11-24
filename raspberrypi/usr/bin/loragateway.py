@@ -23,10 +23,10 @@ class LoraGateway:
             return False
 
     def is_valid_message(self, message):
-        if message.startswith(MESSAGE_PREFIX) == False:
+        if not message.startswith(MESSAGE_PREFIX):
             logging.debug('message doesn\'t start with "' + MESSAGE_PREFIX + '": ' + message)
             return False
-        elif self.is_ascii(message) == False:
+        elif not self.is_ascii(message):
             logging.warn('message is not ASCII: ' + message)
             return False
         elif message.count(',') <= 2:
@@ -55,7 +55,7 @@ class LoraGateway:
 
         while True:
             try:
-                if (ser == None):
+                if ser is None:
                     ser = serial.Serial('/dev/ttyACM0', 9600)
 
                 self.process_message(ser.readline())
