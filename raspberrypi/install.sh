@@ -41,4 +41,5 @@ systemctl daemon-reload
 systemctl enable grafana-server
 systemctl start grafana-server
 
+curl -X POST --user admin:admin localhost:3000/api/datasources -H 'Content-Type: application/json' -d '{"name":"Sensor Database","type":"influxdb","access":"proxy","url":"http://localhost:8086","database":"sensordb"}'
 echo "finished installing"
