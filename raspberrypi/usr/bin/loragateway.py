@@ -11,22 +11,22 @@ MESSAGE_PREFIX = "Got:  "
 class LoraGateway:
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
 
-    def processMessage(self, message):
+    def process_message(self, message):
         message = message.strip()
-        if self.isValidMessage(message):
+        if self.is_valid_message(message):
             logging.info('processing message: ' + message)
-            self.insertDB(message[len(MESSAGE_PREFIX):])
+            self.insert_df(message[len(MESSAGE_PREFIX):])
             logging.info('processed message: ' + message)
             return True
         else:
             logging.debug('not processing message: ' + message)
             return False
 
-    def isValidMessage(self, message):
+    def is_valid_message(self, message):
         if message.startswith(MESSAGE_PREFIX) == False:
             logging.debug('message doesn\'t start with "' + MESSAGE_PREFIX + '": ' + message)
             return False
-        elif self.isAscii(message) == False:
+        elif self.is_ascii(message) == False:
             logging.warn('message is not ASCII: ' + message)
             return False
         elif message.count(',') <= 2:
@@ -35,18 +35,18 @@ class LoraGateway:
         else:
             return True
 
-    def isAscii(self, message):
+    def is_ascii(self, message):
         for c in message:
             if c not in string.printable:
                 return False
         return True
 
-    def insertDB(self, message):
-        r = requests.post("http://localhost:8086/write?db=sensordb", data=self.createBodyForDB(message))
+    def insert_db(self, message):
+        r = requests.post("http://localhost:8086/write?db=sensordb", data=self.create_body_for_db(message))
         if r.status_code != 204:
             logging.error('Failed to send payload to influxdb: ' + str(r.status_code) + ' ' + r.text)
 
-    def createBodyForDB(self, message):
+    def create_body_for_db(self, message):
         host, measure, measurements = message.split(',', 2)
         return measure + ',host=' + host + ' ' + measurements
 
@@ -58,7 +58,7 @@ class LoraGateway:
                 if (ser == None):
                     ser = serial.Serial('/dev/ttyACM0', 9600)
 
-                self.processMessage(ser.readline())
+                self.process_message(ser.readline())
             except serial.SerialException as se:
                 logging.warn("Failed to read message from device: " + str(se))
                 ser = None
