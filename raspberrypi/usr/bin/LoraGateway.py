@@ -15,7 +15,7 @@ class LoraGateway:
         message = message.strip()
         if self.is_valid_message(message):
             logging.info('processing message: ' + message)
-            self.insert_df(message[len(MESSAGE_PREFIX):])
+            self.insert_into_db(message[len(MESSAGE_PREFIX):])
             logging.info('processed message: ' + message)
             return True
         else:
@@ -41,8 +41,8 @@ class LoraGateway:
                 return False
         return True
 
-    def insert_db(self, message):
-        r = requests.post("http://localhost:8086/write?db=sensordb", data=self.create_body_for_db(message))
+    def insert_into_db(self, message):
+        r = requests.post('http://localhost:8086/write?db=sensordb', data=self.create_body_for_db(message))
         if r.status_code != 204:
             logging.error('Failed to send payload to influxdb: ' + str(r.status_code) + ' ' + r.text)
 
