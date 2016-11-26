@@ -52,7 +52,7 @@ const int SENSOR_PINS[] = {A1, A2, A3};
 
 // Global state
 #define DEEP_SLEEP_MILLIS 1000
-#define SEND_DATA_INTERVAL_MILLIS 900000 // 15 minutes
+#define SEND_DATA_INTERVAL_MILLIS 5 * 60000 // 5 minutes
 #define NBR_OF_DEEP_SLEEPS_TO_SEND_DATA SEND_DATA_INTERVAL_MILLIS / DEEP_SLEEP_MILLIS
 
 uint32_t sendDataTimer = millis();
@@ -61,7 +61,7 @@ uint32_t nbrOfSentData = 0;
 bool deepSleepMode = false;
 
 void setup() {
-//  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
+//  while (!Serial) { delay(10000); } // wait for serial connection
   Serial.begin(115200);
 
   // radio setup
