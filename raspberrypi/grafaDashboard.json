@@ -314,7 +314,7 @@
               "tags": []
             }
           ],
-          "title": "Last Communication",
+          "title": "Last Battery Voltage",
           "transform": "timeseries_to_columns",
           "type": "table"
         },
