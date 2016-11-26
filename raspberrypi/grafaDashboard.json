@@ -1,4 +1,6 @@
 {
+  "dashboard":
+{
   "id": 1,
   "title": "Sensor dashboard",
   "tags": [],
@@ -448,4 +450,7 @@
   "version": 19,
   "links": [],
   "gnetId": null
+}
+,
+  "overwrite": false
 }
