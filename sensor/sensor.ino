@@ -259,9 +259,16 @@ void readAndSendSensorData() {
   sendData(data);
 }
 
-// NOTE: if 'A' button was pressed, time is needed to make sure they let go
-// otherwise you will get an invalid reading
 float readBatteryVoltage() {
+  // same pin is used for A button so delay for a bit to make sure they let go otherwise you will get an invalid reading
+  int count = 0;
+  int sendDataButtonState = digitalRead(SEND_DATA_BUTTON_PIN);
+  while (sendDataButtonState == LOW && count < 50) {
+    delay(10);
+    count++;
+    sendDataButtonState = digitalRead(SEND_DATA_BUTTON_PIN);
+  }
+
   pinMode(SEND_DATA_BUTTON_PIN, INPUT); // sent pin to input otherwise we will not get a valid reading
   analogRead(VOLTAGE_BATTERY_PIN); // throw the first one away
   float measuredvbat = analogRead(VOLTAGE_BATTERY_PIN);
