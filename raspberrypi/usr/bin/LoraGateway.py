@@ -3,10 +3,16 @@
 import logging
 import requests
 import serial
+import serial.tools.list_ports
 import string
 import time
 
-MESSAGE_PREFIX = "Got:  "
+MESSAGE_PREFIX                          = "Got:  "
+
+USB_VENDOR_ID_ADAFRUIT                  = "239A"
+USB_PRODUCT_ID_ADAFRUIT_FEATHER_32u4    = "800C"
+USB_PRODUCT_ID_ADAFRUIT_FEATHER_M0      = "800B"
+USB_PORT_REGEX                          = "%s:(%s|%s)" % (USB_VENDOR_ID_ADAFRUIT, USB_PRODUCT_ID_ADAFRUIT_FEATHER_32u4, USB_PRODUCT_ID_ADAFRUIT_FEATHER_M0)
 
 class LoraGateway:
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', level=logging.INFO)
@@ -50,13 +56,18 @@ class LoraGateway:
         host, measure, measurements = message.split(',', 2)
         return measure + ',host=' + host + ' ' + measurements
 
+    def find_device_port(self):
+        for port, desc, hwid in sorted(serial.tools.list_ports.grep(USB_PORT_REGEX)):
+            logging.info("Found device " + port + ' ' + desc + ' ' + hwid)
+            return port
+
     def main(self):
         ser = None
 
         while True:
             try:
                 if ser is None:
-                    ser = serial.Serial('/dev/ttyACM0', 9600)
+                    ser = serial.Serial(self.find_device_port(), 9600)
 
                 self.process_message(ser.readline())
             except serial.SerialException as se:
