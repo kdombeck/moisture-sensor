@@ -56,7 +56,7 @@ int nbrMqttFailedToSend = 0;
 int nbrInvalidMessages = 0;
 
 void setup() {
-//  while ( ! Serial ) { delay( 10 ); } // wait for serial connection
+//  while (!Serial) { delay(100); } // wait for serial connection
   Serial.begin(115200);
 
   Serial.println("LoRa setup");

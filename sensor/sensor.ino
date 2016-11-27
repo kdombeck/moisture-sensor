@@ -61,7 +61,7 @@ uint32_t nbrOfSentData = 0;
 bool deepSleepMode = false;
 
 void setup() {
-//  while (!Serial) { delay(10000); } // wait for serial connection
+//  while (!Serial) { delay(10); } // wait for serial connection
   Serial.begin(115200);
 
   // radio setup
