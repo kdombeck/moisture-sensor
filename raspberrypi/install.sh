@@ -19,7 +19,7 @@ systemctl start influxdb
 curl -i -XPOST http://localhost:8086/query --data-urlencode "q=CREATE DATABASE sensordb"
 
 echo "!!!! Installing Lora Gateway !!!!"
-cp usr/bin/loragateway.py /usr/bin/LoraGateway.py
+cp usr/bin/LoraGateway.py /usr/bin/LoraGateway.py
 cp lib/systemd/system/loragateway.service /lib/systemd/system/loragateway.service
 
 systemctl daemon-reload
