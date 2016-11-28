@@ -349,7 +349,7 @@
                 "rgba(50, 172, 45, 0.97)"
               ],
               "decimals": 2,
-              "pattern": "/.*/",
+              "pattern": "altitude",
               "thresholds": [],
               "type": "number",
               "unit": "short"
