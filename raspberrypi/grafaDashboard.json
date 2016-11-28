@@ -378,6 +378,14 @@
                 [
                   {
                     "params": [
+                      "latitude"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
                       "longitude"
                     ],
                     "type": "field"
@@ -387,14 +395,6 @@
                   {
                     "params": [
                       "altitude"
-                    ],
-                    "type": "field"
-                  }
-                ],
-                [
-                  {
-                    "params": [
-                      "latitude"
                     ],
                     "type": "field"
                   }
