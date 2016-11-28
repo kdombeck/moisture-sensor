@@ -20,12 +20,12 @@ class LoraGateway:
     def process_message(self, message):
         message = message.strip()
         if self.is_valid_message(message):
-            logging.info('processing message: ' + message)
+            logging.info('processing message: "' + message + '"')
             self.insert_into_db(message[len(MESSAGE_PREFIX):])
             logging.info('processed message: ' + message)
             return True
         else:
-            logging.debug('not processing message: ' + message)
+            logging.debug('not processing message: "' + message + '"')
             return False
 
     def is_valid_message(self, message):
