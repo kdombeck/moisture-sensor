@@ -2,7 +2,7 @@
 #include <RH_RF95.h>
 #include <Adafruit_MQTT.h>
 #include <Adafruit_MQTT_Client.h>
-#include <Adafruit_WINC1500.h>
+#include <WiFi101.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "config.h"
@@ -21,12 +21,10 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 #define WINC_RST  4
 #define WINC_EN   2
 
-Adafruit_WINC1500 WiFi(WINC_CS, WINC_IRQ, WINC_RST);
-
 #define AIO_SERVER      "io.adafruit.com"
 #define AIO_SERVERPORT  1883
 
-Adafruit_WINC1500Client client;
+WiFiClient client;
 
 int status = WL_IDLE_STATUS;
 
@@ -90,6 +88,7 @@ void setup() {
   rf95.setTxPower(23, false);
 
   Serial.println("WIFI setup");
+  WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
   pinMode(WINC_EN, OUTPUT);
   digitalWrite(WINC_EN, HIGH);
 
