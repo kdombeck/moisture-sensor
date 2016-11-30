@@ -89,8 +89,6 @@ void setup() {
 
   Serial.println("WIFI setup");
   WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
-  pinMode(WINC_EN, OUTPUT);
-  digitalWrite(WINC_EN, HIGH);
 
   // check for the presence of the breakout
   if (WiFi.status() == WL_NO_SHIELD) {
