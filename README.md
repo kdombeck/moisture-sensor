@@ -26,20 +26,22 @@ The number of sensors can be adjusted by adding/removing pins from `SENSOR_PINS`
 
 Power will only be applied to the sensors while taking a reading via pin `A0`. Constant power to the moisture sensors will cause undo wear.
 
-Example: A,sensor,moisture1=1.1,moisture2=1.23,moisture3=4.56,battery=3.7
+Example: `A,sensor,moisture1=1.1,moisture2=1.23,moisture3=4.56,battery=3.7`
 ###### GPS data
 GPS data will only be sent when the button is pressed since it is expected that these sensors will not be moving. The GPS data for all Feathers will be sent to a single topic called `gps`. The data value will be the station id. Example: `A`. The latitude, longitude, and elevation will be sent to allow you to map each Feather on a map.
 
-Example: A,gps,latitude=49.00,longitude=98.00,altitude=200
+Example: `A,gps,latitude=49.00,longitude=98.00,altitude=200`
 
 # Gateway
 #### Parts
 * [Wifi Feather M0](https://www.adafruit.com/products/3010)
-* [LoRa breakout](https://www.adafruit.com/products/3072)
+* [LoRa Wing](https://www.adafruit.com/products/3231) (preferred) or [LoRa breakout](https://www.adafruit.com/products/3072)
 * [OLED display](https://www.adafruit.com/products/2900) (optional)
 
 You will need to copy [config.h.template](gateway/config.h.template) to config.h and follow the instruction in there for WIFI and Adafruit.io credentials.
 
-Currently there are only 2 types of messages supported `sensor` and `gps`.
+#### LoRa Wing
+![Gateway wiring diagram for feather wing](gateway/wiringDiagramFeatherWing.png)
 
-![Gateway wiring diagram](gateway/wiringDiagram.png)
+#### LoRa breakout
+![Gateway wiring diagram for breakout](gateway/wiringDiagramBreakout.png)
