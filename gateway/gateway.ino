@@ -357,6 +357,7 @@ bool MQTT_connect() {
   int attemps = 0;
   while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
     if (attemps++ > 5) {
+      WiFi.disconnect();
       Serial.println("Failed to connect to MQTT after many tries");
       return false;
     }
