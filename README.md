@@ -49,4 +49,9 @@ You will need to copy [config.h.template](gateway/config.h.template) to config.h
 # Raspberry Pi
 With a Raspberry Pi and the code from [here](https://github.com/kdombeck/moisture-sensor/tree/master/raspberrypi) you can create charts like the following. This can be in addition to the functionality provided by Adafruit.io.
 
+#### Parts
+* [Raspberry Pi 3](https://www.adafruit.com/products/3055)
+* [Power supply](https://www.adafruit.com/products/1995)
+* [Micro SD card](https://www.adafruit.com/products/2693)
+
 ![Grafana on Raspberry Pi](raspberrypi/grafanaSample.png)
