@@ -108,13 +108,6 @@ void setup() {
 }
 
 void loop() {
-  // Ensure the connection to the MQTT server is alive (this will make the first
-  // connection and automatically reconnect when disconnected).  See the MQTT_connect
-  // function definition further below.
-  if (!MQTT_connect()) {
-    return;
-  }
-
   if (rf95.available()) {
     // Should be a message for us now
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -181,29 +174,11 @@ void processMessage(const String& message) {
         feedName.concat(stationId);
         feedName.concat("-");
         feedName.concat(key);
-        char feedNameBuf[feedName.length() + 1];
-        feedName.toCharArray(feedNameBuf, feedName.length() + 1);
-    
-        oled.print("feedName: "); oled.println(feedNameBuf);
-        oled.display();
-    
-        char valueBuf[value.length() + 1];
-        value.toCharArray(valueBuf, value.length() + 1);
-    
-        Serial.print("feed name: "); Serial.println(feedNameBuf);
-        Serial.print("value:     "); Serial.println(valueBuf);
-        oled.print("MQTT: "); oled.println(valueBuf);
-        oled.display();
-    
-        if (mqtt.publish(feedNameBuf, valueBuf)) {
-          nbrMqttSuccessfulSent++;
+
+        if (sendMqttMessage(feedName, value)) {
           mqttSuccess++;
-          oled.println("MQTT OK");
-          oled.display();
         } else {
-          nbrMqttFailedToSend++;
           mqttFailure++;
-          Serial.println("MQTT failed");
         }
 
         // find next comma
@@ -248,11 +223,6 @@ void processMessage(const String& message) {
 
       String feedName = String(FEED_NAME_PREFIX);
       feedName.concat("gps/csv");
-      char feedNameBuf[feedName.length() + 1];
-      feedName.toCharArray(feedNameBuf, feedName.length() + 1);
-
-      oled.print("feedName: "); oled.println(feedNameBuf);
-      oled.display();
 
       String message = String(stationId);
       message.concat(",");
@@ -262,20 +232,7 @@ void processMessage(const String& message) {
       message.concat(",");
       message.concat(altitude);
 
-      char messageBuf[message.length() + 1];
-      message.toCharArray(messageBuf, message.length() + 1);
-
-      Serial.print("feed name: "); Serial.println(feedNameBuf);
-      Serial.print("message:   "); Serial.println(messageBuf);
-      oled.print("MQTT: "); oled.println(messageBuf);
-      oled.display();
-
-      if (mqtt.publish(feedNameBuf, messageBuf)) {
-        oled.println("MQTT OK");
-        oled.display();
-      } else {
-        Serial.println("MQTT failed");
-      }
+      sendMqttMessage(feedName, message);
 
       sendLoRaReply(String("Success"));
     } else {
@@ -285,6 +242,37 @@ void processMessage(const String& message) {
     }
   } else {
     sendLoRaReply(String("Invalid message"));
+  }
+}
+
+bool sendMqttMessage(const String& feedName, const String& message) {
+  if (!connectWifiAndMqtt()) {
+    return false;
+  }
+
+  char feedNameBuf[feedName.length() + 1];
+  feedName.toCharArray(feedNameBuf, feedName.length() + 1);
+
+  Serial.print("feed name: "); Serial.println(feedNameBuf);
+  oled.print("feedName: "); oled.println(feedNameBuf);
+  oled.display();
+
+  char messageBuf[message.length() + 1];
+  message.toCharArray(messageBuf, message.length() + 1);
+
+  Serial.print("message:   "); Serial.println(messageBuf);
+  oled.print("MQTT: "); oled.println(messageBuf);
+  oled.display();
+
+  if (mqtt.publish(feedNameBuf, messageBuf)) {
+    nbrMqttSuccessfulSent++;
+    oled.println("MQTT OK");
+    oled.display();
+    return true;
+  } else {
+    nbrMqttFailedToSend++;
+    Serial.println("MQTT failed");
+    return false;
   }
 }
 
@@ -319,9 +307,7 @@ void sendLoRaReply(const String& message) {
   rf95.waitPacketSent();
 }
 
-// Function to connect and reconnect as necessary to the MQTT server.
-// Should be called in the loop function and it will take care if connecting.
-bool MQTT_connect() {
+bool connectWifiAndMqtt() {
   int8_t ret;
 
   // attempt to connect to Wifi network:
