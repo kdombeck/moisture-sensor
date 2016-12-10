@@ -139,10 +139,10 @@ void loop() {
     oledRefreshTimer = millis(); // reset the timer
     oled.clearDisplay();
     oled.setCursor(0,0);
-    oled.print("nbr received     "); oled.println(nbrMessagesReceived);
-    oled.print("nbr MQTT success "); oled.println(nbrMqttSuccessfulSent);
-    oled.print("nbr MQTT failed  "); oled.println(nbrMqttFailedToSend);
-    oled.print("nbr invalid msg  "); oled.println(nbrInvalidMessages);
+    oled.print("# received    "); oled.println(nbrMessagesReceived);
+    oled.print("# MQTT succes "); oled.println(nbrMqttSuccessfulSent);
+    oled.print("# MQTT failed "); oled.println(nbrMqttFailedToSend);
+    oled.print("# invalid msg "); oled.println(nbrInvalidMessages);
     oled.display();
   }
 }
@@ -253,6 +253,8 @@ bool sendMqttMessage(const String& feedName, const String& message) {
   char feedNameBuf[feedName.length() + 1];
   feedName.toCharArray(feedNameBuf, feedName.length() + 1);
 
+  oled.clearDisplay();
+  oled.setCursor(0,0);
   Serial.print("feed name: "); Serial.println(feedNameBuf);
   oled.print("feedName: "); oled.println(feedNameBuf);
   oled.display();
