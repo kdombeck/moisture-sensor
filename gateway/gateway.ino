@@ -48,10 +48,10 @@ Adafruit_SSD1306 oled = Adafruit_SSD1306();
 
 uint32_t oledRefreshTimer = millis();
 
-int nbrMessagesReceived = 0;
-int nbrMqttSuccessfulSent = 0;
-int nbrMqttFailedToSend = 0;
-int nbrInvalidMessages = 0;
+uint32_t nbrMessagesReceived = 0;
+uint32_t nbrMqttSuccessfulSent = 0;
+uint32_t nbrMqttFailedToSend = 0;
+uint32_t nbrInvalidMessages = 0;
 
 void setup() {
 //  while (!Serial) { delay(100); } // wait for serial connection
