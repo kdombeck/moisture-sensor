@@ -25,6 +25,21 @@ systemctl daemon-reload
 systemctl enable loragateway.service
 systemctl restart loragateway
 
+echo "!!!! Installing Weather Collection !!!!"
+cp usr/bin/CollectWeatherData.* /usr/bin/.
+
+echo
+echo 'Enter in your zip code:'
+read zipCode
+sed "s/ZipCode =/ZipCode = $zipCode/"
+
+echo
+echo 'Enter in your http://openweathermap.org/ api key:'
+read apiKey
+sed "s/OpenWeatherMapApiKey =/OpenWeatherMapApiKey = $apiKey/"
+
+echo '0,30 * * * *  /usr/bin/CollectWeatherData.py' > /ect/cron.d/collectWeatherData
+
 echo "!!!! Installing Grafana !!!!"
 curl -OL https://github.com/fg2it/grafana-on-raspberry/releases/download/v4.0.2/grafana_4.0.2-1481228559_armhf.deb
 apt-get install -y adduser libfontconfig
