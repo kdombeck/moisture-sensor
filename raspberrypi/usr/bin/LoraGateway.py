@@ -69,7 +69,7 @@ class LoraGateway:
                 if ser is None:
                     ser = serial.Serial(self.find_device_port(), 9600)
 
-                self.process_message(ser.readline())
+                self.process_message(ser.readline().decode("utf-8").strip())
             except serial.SerialException as se:
                 logging.warn("Failed to read message from device: " + str(se))
                 ser = None
