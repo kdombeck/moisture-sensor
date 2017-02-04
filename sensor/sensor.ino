@@ -51,12 +51,11 @@ uint32_t oledRefreshTimer = millis();
 const int SENSOR_PINS[] = {A1, A2, A3};
 
 // Global state
-#define DEEP_SLEEP_MILLIS 1000
+#define DEEP_SLEEP_MILLIS 8000
 #define SEND_DATA_INTERVAL_MILLIS 5 * 60000 // 5 minutes
-#define NBR_OF_DEEP_SLEEPS_TO_SEND_DATA SEND_DATA_INTERVAL_MILLIS / DEEP_SLEEP_MILLIS
 
 uint32_t sendDataTimer = millis();
-uint32_t nbrOfDeepSleeps = 0;
+uint32_t nbrOfMillisDeepSleeping = 0;
 uint32_t nbrOfSentData = 0;
 bool deepSleepMode = false;
 
@@ -142,6 +141,7 @@ void setup() {
 }
 
 void loop() {
+Serial.println("loop");
   // check to see if sensor data should be sent
   int sendDataButtonState = digitalRead(SEND_DATA_BUTTON_PIN);
   if (sendDataButtonState != sendDataLastButtonState) {
@@ -183,7 +183,7 @@ void loop() {
     if (sleepButtonState == LOW) {
       // if the current state is LOW then the button was pressed
       deepSleepMode = !deepSleepMode;
-      nbrOfDeepSleeps = 0;
+      nbrOfMillisDeepSleeping = 0;
       Serial.print(F("deep sleep set to ")); Serial.println(deepSleepMode);
     }
   }
@@ -193,9 +193,9 @@ void loop() {
 
   // automatically send the sensor data based on a time interval
   if (millis() - sendDataTimer > SEND_DATA_INTERVAL_MILLIS ||
-      nbrOfDeepSleeps > NBR_OF_DEEP_SLEEPS_TO_SEND_DATA) {
+      nbrOfMillisDeepSleeping > SEND_DATA_INTERVAL_MILLIS) {
     sendDataTimer = millis(); // reset the timer
-    nbrOfDeepSleeps = 0;
+    nbrOfMillisDeepSleeping = 0;
     readAndSendSensorData();
   }
 
@@ -222,15 +222,9 @@ void loop() {
   sleepLastButtonState = sleepButtonState;
 
   if (deepSleepMode) {
-#ifdef ARDUINO_ARCH_SAMD
-    // Watchdog.sleep isn't implemented yet for M0 so a deplay will save around 3.5ma
-    delay(DEEP_SLEEP_MILLIS);
-#else
     // when in deep sleep mode millis() is no longer valid
     // so keep track of the number of deep sleeps for timer intervals
-    nbrOfDeepSleeps++;
-    Watchdog.sleep(DEEP_SLEEP_MILLIS);
-#endif
+    nbrOfMillisDeepSleeping += Watchdog.sleep(DEEP_SLEEP_MILLIS);
   }
 }
 
